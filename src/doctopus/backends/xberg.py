@@ -5,7 +5,7 @@ import json
 from importlib import metadata
 from pathlib import Path
 
-from doctopus.backends.base import RawResult
+from doctopus.backends.base import RawResult, pkg_licence
 from doctopus.core.errors import BackendUnavailable, ExtractionFailed
 from doctopus.core.models import BackendInfo, Bbox, Block, Page, Table
 
@@ -40,7 +40,7 @@ class XbergBackend:
         return BackendInfo(
             id=self.id, version=ver, available=ok, reason_unavailable=why, formats=FORMATS,
             capabilities={"ocr": True, "tables": True, "layout_model": False, "office": True, "bbox": True},
-            weight="light",
+            weight="light", ram_mb=None, licence=pkg_licence("xberg"),
         )
 
     def supports(self, ext: str) -> bool:

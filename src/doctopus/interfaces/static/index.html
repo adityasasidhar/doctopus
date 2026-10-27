@@ -28,7 +28,7 @@ table{border-collapse:collapse}td,th{border:1px solid var(--line);padding:3px 8p
   <input id="f" type="file" hidden>
   <div id="fname" style="margin-top:8px;color:var(--mute)"></div>
   <label for="backend">Engine</label>
-  <select id="backend"><option value="auto">auto (router decides)</option><option>xberg</option><option>docling</option></select>
+  <select id="backend"><option value="auto">auto (router decides)</option></select>
   <label for="mode">Mode</label>
   <select id="mode"><option>balanced</option><option>fast</option><option>accurate</option></select>
   <button id="go" disabled>Process</button>
@@ -45,6 +45,10 @@ table{border-collapse:collapse}td,th{border:1px solid var(--line);padding:3px 8p
 <script>
 const $=id=>document.getElementById(id);let file,doc;
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+fetch('/v1/backends').then(r=>r.ok?r.json():[]).then(bs=>bs.forEach(b=>{const o=document.createElement('option');
+  o.value=b.id;o.disabled=!b.available;o.textContent=`${b.id} · ${b.weight}${b.runtime!=='in-process'?' · '+b.runtime:''}`+(b.available?'':` — ${b.reason_unavailable}`);
+  o.title=b.licence||'';$('backend').append(o)})).then(()=>fetch('/v1/health')).then(r=>r.json())
+  .then(h=>{if(h.default_backend)$('backend').value=h.default_backend}).catch(()=>{});
 $('drop').onclick=()=>$('f').click();
 $('f').onchange=e=>pick(e.target.files[0]);
 ['dragover','dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.toggle('over',ev==='dragover');if(ev==='drop')pick(e.dataTransfer.files[0])}));

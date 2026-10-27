@@ -53,7 +53,7 @@ async def _spool(file: UploadFile) -> Path:
 @app.post("/v1/parse", dependencies=[Depends(auth)])
 async def parse(
     file: UploadFile = File(...),
-    backend: str = Form("auto"),
+    backend: str | None = Form(None),  # None -> server default ($DOCTOPUS_BACKEND / serve --backend)
     mode: Literal["fast", "balanced", "accurate"] = Form("balanced"),
     fallback: bool | None = Form(None),  # None -> gateway policy (auto: one escalation; manual: none)
 ):
@@ -69,7 +69,7 @@ async def parse(
 @app.post("/v1/chunk", dependencies=[Depends(auth)], response_model=list[Chunk])
 async def chunk(
     file: UploadFile = File(...),
-    backend: str = Form("auto"),
+    backend: str | None = Form(None),  # None -> server default ($DOCTOPUS_BACKEND / serve --backend)
     mode: Literal["fast", "balanced", "accurate"] = Form("balanced"),
     max_chars: int = Form(1500, ge=100, le=20_000),
 ):
@@ -78,10 +78,11 @@ async def chunk(
 
 
 @app.post("/v1/plan", dependencies=[Depends(auth)])
-async def plan(file: UploadFile = File(...), mode: Literal["fast", "balanced", "accurate"] = Form("balanced")):
+async def plan(file: UploadFile = File(...), mode: Literal["fast", "balanced", "accurate"] = Form("balanced"),
+               backend: str | None = Form(None)):
     p = await _spool(file)
     try:
-        return gw.plan(p, mode=mode)
+        return gw.plan(p, backend=backend, mode=mode)
     finally:
         p.unlink(missing_ok=True)
 
@@ -93,7 +94,8 @@ def backends():
 
 @app.get("/v1/health")
 def health():
-    return {"status": "ok", "version": __version__, "backends_ready": [b.id for b in gw.list_backends() if b.available]}
+    return {"status": "ok", "version": __version__, "default_backend": gw.default_backend,
+            "backends_ready": [b.id for b in gw.list_backends() if b.available]}
 
 
 @app.get("/", include_in_schema=False)

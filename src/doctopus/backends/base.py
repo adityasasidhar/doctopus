@@ -23,6 +23,23 @@ class RawResult:
     warnings: list[str] = field(default_factory=list)
 
 
+def pkg_licence(dist: str) -> str | None:
+    """Licence as declared in the installed package's metadata (None if not installed / not declared)."""
+    from importlib import metadata
+
+    try:
+        m = metadata.metadata(dist)
+    except metadata.PackageNotFoundError:
+        return None
+    lic = m.get("License-Expression")
+    if not lic:  # legacy field often holds the whole licence text; keep it only if it is a short name
+        first = (m.get("License") or "").strip().splitlines()[:1]
+        lic = first[0] if first and len(first[0]) < 40 else None
+    if not lic:
+        lic = next((c.rsplit("::", 1)[-1].strip() for c in m.get_all("Classifier") or [] if c.startswith("License ::")), None)
+    return lic
+
+
 class Backend(Protocol):
     id: str
 

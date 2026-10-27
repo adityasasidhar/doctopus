@@ -92,3 +92,6 @@ class BackendInfo(BaseModel):
     formats: list[str]
     capabilities: dict[str, bool]
     weight: Literal["light", "heavy"]
+    ram_mb: int | None = None  # free RAM the router requires before choosing it (measured peak + headroom)
+    licence: str | None = None
+    runtime: Literal["in-process", "sidecar", "service"] = "in-process"

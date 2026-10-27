@@ -11,7 +11,23 @@ def _docling():
     return DoclingBackend()
 
 
-_FACTORIES = {"xberg": XbergBackend, "docling": _docling}
+def _lazy(module: str, cls: str):
+    def make():
+        import importlib
+        return getattr(importlib.import_module(f"doctopus.backends.{module}"), cls)()
+    return make
+
+
+# order = display order; routing preference lives in routing/router.py
+_FACTORIES = {
+    "xberg": XbergBackend,
+    "docling": _docling,
+    "marker": _lazy("sidecar", "MarkerBackend"),
+    "mineru": _lazy("sidecar", "MinerUBackend"),
+    "ollama": _lazy("ollama", "OllamaBackend"),
+    "pymupdf4llm": _lazy("pymupdf4llm", "PyMuPDF4LLMBackend"),
+    "markitdown": _lazy("markitdown", "MarkItDownBackend"),
+}
 _cache: dict[str, Backend] = {}
 
 

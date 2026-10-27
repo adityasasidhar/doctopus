@@ -9,9 +9,11 @@ from __future__ import annotations
 __version__ = "0.1.0"
 
 
-def parse(path, *, backend: str = "auto", mode: str = "balanced", fallback: bool | None = None,
+def parse(path, *, backend: str | None = None, mode: str = "balanced", fallback: bool | None = None,
           ocr: bool | None = None):
-    """Synchronous convenience wrapper around ``Gateway().parse``."""
+    """Synchronous convenience wrapper around ``Gateway().parse``.
+
+    backend: "auto" (router decides) or an engine id; None uses $DOCTOPUS_BACKEND, else "auto"."""
     import asyncio
 
     from doctopus.core.gateway import Gateway
@@ -19,14 +21,14 @@ def parse(path, *, backend: str = "auto", mode: str = "balanced", fallback: bool
     return asyncio.run(Gateway().parse(path, backend=backend, mode=mode, fallback=fallback, ocr=ocr))
 
 
-def chunk(path, *, max_chars: int = 1500, backend: str = "auto", mode: str = "balanced"):
+def chunk(path, *, max_chars: int = 1500, backend: str | None = None, mode: str = "balanced"):
     """Parse then split into layout-aware chunks (list of ``doctopus.core.chunk.Chunk``)."""
     from doctopus.core.chunk import chunk as make_chunks
 
     return make_chunks(parse(path, backend=backend, mode=mode), max_chars=max_chars)
 
 
-def plan(path, *, backend: str = "auto", mode: str = "balanced"):
+def plan(path, *, backend: str | None = None, mode: str = "balanced"):
     """Routing decision only (no extraction)."""
     from doctopus.core.gateway import Gateway
 

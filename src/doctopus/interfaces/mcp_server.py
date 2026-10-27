@@ -11,11 +11,13 @@ from doctopus.core.errors import DoctopusError, InputRejected
 from doctopus.core.gateway import Gateway
 
 MAX_CHARS_DEFAULT = 60_000
+Engine = Literal["auto", "xberg", "docling", "marker", "mineru", "ollama", "pymupdf4llm", "markitdown"]
 
 
-def build_server(root: Path) -> MCPServer:
+def build_server(root: Path, backend: str | None = None) -> MCPServer:
+    """backend: default engine for tool calls that omit one (None -> $DOCTOPUS_BACKEND, else auto)."""
     root = root.resolve()
-    gw = Gateway()
+    gw = Gateway(default_backend=backend)
     mcp = MCPServer(
         "doctopus",
         instructions=(
@@ -34,7 +36,7 @@ def build_server(root: Path) -> MCPServer:
     @mcp.tool()
     async def parse_document(
         path: str,
-        backend: Literal["auto", "xberg", "docling"] = "auto",
+        backend: Engine | None = None,
         mode: Literal["fast", "balanced", "accurate"] = "balanced",
         include_blocks: bool = False,
         max_chars: int = MAX_CHARS_DEFAULT,
@@ -61,7 +63,7 @@ def build_server(root: Path) -> MCPServer:
     async def chunk_document(
         path: str,
         max_chars: int = 1500,
-        backend: Literal["auto", "xberg", "docling"] = "auto",
+        backend: Engine | None = None,
         mode: Literal["fast", "balanced", "accurate"] = "balanced",
         offset: int = 0,
         limit: int = 50,
@@ -77,10 +79,11 @@ def build_server(root: Path) -> MCPServer:
                 "chunks": [c.model_dump(mode="json") for c in cs[offset:offset + max(1, limit)]]}
 
     @mcp.tool()
-    def explain_routing(path: str, mode: Literal["fast", "balanced", "accurate"] = "balanced") -> dict:
+    def explain_routing(path: str, mode: Literal["fast", "balanced", "accurate"] = "balanced",
+                        backend: Engine | None = None) -> dict:
         """Say which engine Doctopus would pick for this file and why, without extracting anything."""
         try:
-            return gw.plan(safe(path), mode=mode).model_dump(mode="json")
+            return gw.plan(safe(path), backend=backend, mode=mode).model_dump(mode="json")
         except DoctopusError as e:
             return {"error": e.code, "message": str(e)}
 
@@ -109,5 +112,5 @@ def build_server(root: Path) -> MCPServer:
     return mcp
 
 
-def run_stdio(root: Path) -> None:
-    build_server(root).run("stdio")
+def run_stdio(root: Path, backend: str | None = None) -> None:
+    build_server(root, backend).run("stdio")
