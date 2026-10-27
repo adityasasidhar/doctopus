@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/doctopus-mascot-cute.png" alt="Doctopus, a friendly octopus holding symbols for Python, the CLI, REST, and MCP" width="340">
+  <img src="assets/doctopus-logo.png" alt="Doctopus, a cute purple octopus holding the logos of its supported document-processing backends" width="340">
 
 # Doctopus
 
