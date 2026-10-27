@@ -101,3 +101,8 @@ def health():
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(STATIC / "index.html")
+
+
+@app.get("/logo.png", include_in_schema=False)
+def logo():
+    return FileResponse(STATIC / "logo.png", media_type="image/png")
