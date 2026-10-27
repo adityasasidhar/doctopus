@@ -31,11 +31,19 @@ class SidecarBackend:
     install: str
     capabilities: dict[str, bool]
 
+    def missing_models(self) -> str | None:
+        """Why the engine can't run offline yet (weights not downloaded), or None. The CLI alone is not enough."""
+        return None
+
+    def _unavailable(self) -> str | None:
+        return self.install if not shutil.which(self.exe) else self.missing_models()
+
     def info(self) -> BackendInfo:
         path = shutil.which(self.exe)
+        reason = self._unavailable()
         return BackendInfo(
-            id=self.id, version=_tool_version(path, self.dist) if path else None, available=path is not None,
-            reason_unavailable=None if path else self.install, formats=self.formats,
+            id=self.id, version=_tool_version(path, self.dist) if path else None, available=reason is None,
+            reason_unavailable=reason, formats=self.formats,
             capabilities=self.capabilities, weight="heavy", ram_mb=self.ram_mb, licence=self.licence,
             runtime="sidecar",
         )
@@ -50,8 +58,8 @@ class SidecarBackend:
         raise NotImplementedError
 
     async def process(self, path: Path, *, ocr: bool | None = None) -> RawResult:
-        if not shutil.which(self.exe):
-            raise BackendUnavailable(f"{self.id}: {self.install}")
+        if reason := self._unavailable():
+            raise BackendUnavailable(f"{self.id}: {reason}")
         with tempfile.TemporaryDirectory(prefix=f"doctopus-{self.id}-") as tmp:
             out = Path(tmp)
             proc = await asyncio.create_subprocess_exec(
@@ -74,6 +82,12 @@ def _tool_version(exe: str, dist: str) -> str | None:
     return hits[-1].name.split("-")[1].removesuffix(".dist") if hits else None
 
 
+def _hf_cache() -> Path:
+    if os.environ.get("HF_HUB_CACHE"):
+        return Path(os.environ["HF_HUB_CACHE"])
+    return Path(os.environ.get("HF_HOME", Path.home() / ".cache/huggingface")) / "hub"
+
+
 def _single(out: Path, pattern: str) -> Path:
     hits = sorted(out.rglob(pattern))
     if not hits:
@@ -84,12 +98,18 @@ def _single(out: Path, pattern: str) -> Path:
 class MarkerBackend(SidecarBackend):
     id, exe, dist = "marker", "marker_single", "marker-pdf"
     formats = ["pdf", "png", "jpg", "jpeg", "tiff", "webp"]
-    ram_mb = 6000
+    ram_mb = 1500  # measured peak ~0.9 GB RSS in fast mode (layout model on the 4 GB GPU)
     licence = "Apache-2.0 code; model weights modified OpenRAIL-M (commercial limits)"
     install = "uv tool install --python 3.12 marker-pdf"
     capabilities = {"ocr": True, "tables": True, "layout_model": True, "office": False, "bbox": False,
                     "formulas": True}
     _SEP = re.compile(r"\n*\{(\d+)\}-{48}\n*")
+
+    def missing_models(self):
+        # fast mode's layout detector; the two small s3 checkpoints it also needs are fetched on first run
+        if not any((_hf_cache() / "models--datalab-to--surya_layout2/snapshots").glob("*/rfdetr_layout.pth")):
+            return "models not downloaded: hf download datalab-to/surya_layout2"
+        return None
 
     def command(self, src, out, ocr):
         cmd = [self.exe, str(src), "--output_dir", str(out), "--output_format", "markdown", "--paginate_output",
@@ -111,11 +131,20 @@ class MarkerBackend(SidecarBackend):
 class MinerUBackend(SidecarBackend):
     id, exe, dist = "mineru", "mineru-kit", "mineru"
     formats = ["pdf", "png", "jpg", "jpeg", "docx", "pptx", "xlsx", "html", "epub", "csv"]
-    ram_mb = 4000
+    ram_mb = 2000  # measured peak ~1.6 GB RSS, basic tier, onnx backend
     licence = "MinerU Open Source License (Apache-2.0 + conditions)"
     install = "uv tool install --python 3.12 mineru"
     capabilities = {"ocr": True, "tables": True, "layout_model": True, "office": True, "bbox": False,
                     "formulas": True}
+
+    _MODELS = ["Layout/PP-DocLayoutV2/inference.onnx", "MFR/pp_formulanet_plus_m/PP-FormulaNet_plus-M.onnx",
+               "OCR/paddleocr/ch_PP-OCRv6_small_rec_infer.onnx", "Table/slanet-plus.onnx"]
+
+    def missing_models(self):
+        root = Path(os.environ.get("DOCTOPUS_MINERU_MODELS", Path.home() / ".mineru/models")) / "MinerU-4_models_onnx"
+        if not all((root / m).is_file() for m in self._MODELS):
+            return "models not downloaded: mineru-kit models download --tier basic --small-backend onnx"
+        return None
 
     def command(self, src, out, ocr):
         tier = os.environ.get("DOCTOPUS_MINERU_TIER", "basic")  # standard/advanced need a local VLM runtime

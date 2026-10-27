@@ -44,3 +44,13 @@ def test_pages_numbered_and_text_without_markup():
 def test_unknown_pages_stay_none():
     r = from_markdown([(None, "just text")], source="t")
     assert r.blocks[0].page is None and r.pages == [] and r.page_count is None
+
+
+def test_html_tables_become_pipe_tables():
+    html = ('<table><tr><td colspan="3">Revenue | USD</td></tr>'
+            '<tr><th>Region</th><th>2025</th><th>2026</th></tr><tr><td>North</td><td>1</td><td>2</td></tr></table>')
+    r = from_markdown([(1, "Intro.\n" + html + "\nAfter.")], source="mineru")
+    assert len(r.tables) == 1 and r.tables[0].page == 1
+    assert r.tables[0].rows == [["Revenue | USD", "", ""], ["Region", "2025", "2026"], ["North", "1", "2"]]
+    assert "<table" not in r.markdown and "<td" not in r.text
+    assert [b.text for b in r.blocks] == ["Intro.", "After."]
