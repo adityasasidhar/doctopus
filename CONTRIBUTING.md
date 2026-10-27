@@ -20,6 +20,7 @@ Optional extras declared in `pyproject.toml` — install only what your change t
 
 ```bash
 uv sync --extra docling    # optional Docling backend (large; ~4 GB RAM for auto-selection)
+uv sync --extra paddleocr  # optional CPU PaddleOCR PP-StructureV3 (explicit backend selection)
 uv sync --extra ollama     # Ollama-backed extraction
 uv sync --extra markitdown # MarkItDown-backed extraction
 ```
@@ -93,6 +94,8 @@ Paste the output into your PR (the reference table lives in `bench_results/resul
 3. Register it in `backends/registry.py` with a lazy factory if the import is heavy.
 4. Make sure `uv run doctopus backends list` shows it and `uv run doctopus plan <file>` can select or escalate to it.
 5. Add unit tests with a fake or minimal backend; add an end-to-end check only if the backend is installable in CI-sized environments.
+
+The `paddleocr` adapter wraps PP-StructureV3 for PDFs and images. Keep pipeline initialization and prediction iteration in its locked worker thread; backend discovery must not import Paddle or load models. It is excluded from automatic selection and fallback until benchmarked. Canonical table blocks retain provenance, while the chunker emits their corresponding `Table` entries only once. Run `uv run pytest tests/test_paddleocr.py` for adapter and interface contract tests without model downloads.
 
 ## Documentation
 

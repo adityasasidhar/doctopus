@@ -17,6 +17,7 @@ Doctopus parses PDFs, Office documents, and scans into Markdown, text, tables, a
 
 - **Start light.** Xberg is the default engine, with OCR, table extraction, and document structure.
 - **Bring in Docling when you need it.** Install the optional backend for its richer layout taxonomy, select it explicitly, or let the gateway escalate when appropriate.
+- **Add PaddleOCR for document images.** Install the optional PP-StructureV3 backend for OCR, layout, tables, and formulas, then select it explicitly.
 - **Keep one output shape.** A versioned document schema carries content, metadata, and processing details across backends.
 - **Know what happened.** Routing reasons, warnings, timings, and fallback details travel with the result.
 - **Run it yourself.** Use it locally or in Docker, without a per-page API service.
@@ -55,6 +56,7 @@ Every engine returns the same `Document` schema, so you can swap one for another
 | `markitdown` | Light: Office, HTML and spreadsheets; no OCR | In-process | `uv sync --extra markitdown` | MIT |
 | `pymupdf4llm` | Light: MuPDF text layer, small layout model, OCR | In-process | `uv sync --extra pymupdf4llm` | AGPL-3.0 |
 | `docling` | Heavy: layout and table models | In-process | `uv sync --extra docling` | MIT |
+| `paddleocr` | Heavy: PP-StructureV3 OCR, layout, tables, formulas | In-process (CPU; explicit selection) | `uv sync --extra paddleocr` | Apache-2.0 package |
 | `marker` | Heavy: layout models, equations | Sidecar | `uv tool install --python 3.12 marker-pdf` | Apache-2.0 code; model weights under modified OpenRAIL-M |
 | `mineru` | Heavy: layout models, formulas, Office | Sidecar | `uv tool install --python 3.12 mineru` | MinerU Open Source License |
 | `ollama` | Heavy: local vision-language model | Ollama service | `uv sync --extra ollama` and `ollama pull qwen3-vl:2b` | MIT client; model licence varies |
@@ -70,6 +72,22 @@ Check each licence against your use before deploying, particularly AGPL-3.0 and 
 - **Router:** `auto`, the default, lets the router choose. A request that names an engine, or `auto`, always overrides the deployment default. The routing reasons say which source the choice came from.
 - **Accurate mode:** `--mode accurate` uses the first heavy engine that supports the format and fits in free memory. The order is `docling,marker,mineru,ollama`; change it with `DOCTOPUS_HEAVY_ORDER`.
 
+### PaddleOCR PP-StructureV3
+
+Install the optional CPU backend and select it by name:
+
+```bash
+uv sync --extra paddleocr
+uv run doctopus parse scan.pdf --backend paddleocr
+uv run doctopus chunk ./scans --backend paddleocr --output scans.jsonl
+```
+
+PP-StructureV3 accepts PDFs and PNG, JPG/JPEG, BMP, and TIF/TIFF images. It runs locally on the CPU, downloads model weights on its first extraction, and reuses the loaded pipeline for subsequent requests in the same process. It uses OCR for every input; the Python option `ocr=False` is rejected. Optional dependencies and model weights are substantial, so allow additional disk space and memory beyond the lightweight profile.
+
+Select `paddleocr` through Python (`doctopus.parse("scan.pdf", backend="paddleocr")`), the REST `backend` form field, MCP's `backend` argument, or the demo's engine selector. It returns the same document schema, including reading-order blocks, pages, bounding boxes, tables, and recognized formulas. Tables may contain HTML within Markdown to retain merged cells; `rows` and document quality remain unknown. Extracted image assets are not exported, and a warning identifies potentially unresolved Markdown image links.
+
+PaddleOCR is **explicit selection only** until it has been benchmarked here; automatic modes and fallback continue to use the existing engine policy. This extra installs CPU PaddlePaddle. For GPU use, follow the [official PaddlePaddle installation instructions](https://www.paddleocr.ai/latest/en/version3.x/installation.html) in an environment with the appropriate GPU runtime; the bundled adapter currently selects the CPU device.
+
 ## Interfaces
 
 ### Command line
@@ -83,6 +101,7 @@ uv run doctopus parse paper.pdf --format json --output result.json
 
 # Choose an engine explicitly
 uv run doctopus parse report.docx --backend docling
+uv run doctopus parse scan.pdf --backend paddleocr
 
 # Inspect routing or available engines
 uv run doctopus plan paper.pdf --mode accurate
@@ -160,6 +179,8 @@ CLI · REST · MCP · Python
                ├─ Xberg: light, default
                └─ Docling: optional, layout-aware
 ```
+
+PaddleOCR PP-StructureV3 is also available via explicit `--backend paddleocr` selection; it is excluded from automatic routing and escalation.
 
 | Selection | Initial engine | Fallback |
 | --- | --- | --- |
@@ -256,6 +277,7 @@ uv run python tests/mcp_smoke.py
 ```
 
 Install `--extra docling` as well when developing or testing the optional backend.
+Use `--extra paddleocr` for real PP-StructureV3 extraction. PaddleOCR adapter tests use representative engine results so the normal unit suite requires no Paddle models.
 
 ## License
 

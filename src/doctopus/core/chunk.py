@@ -73,8 +73,11 @@ def chunk(doc: Document, *, max_chars: int = MAX_CHARS) -> list[Chunk]:
                 flush()
             buf.append((piece, page, bid))
 
-    blocks = [b for b in doc.blocks if b.type not in SKIP_TYPES and b.text.strip()]
-    if blocks:
+    table_ids = {t.id for t in doc.tables}
+    content_blocks = [b for b in doc.blocks if b.text.strip()]
+    blocks = [b for b in content_blocks if b.type not in SKIP_TYPES
+              and not (b.type == "table" and b.id in table_ids)]
+    if content_blocks:  # all-table/furniture pages must not reintroduce text through page fallback
         for b in blocks:
             if b.type == "heading":
                 tables_before(b.page)

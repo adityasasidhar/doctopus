@@ -63,3 +63,13 @@ def test_ids_are_deterministic_and_carry_provenance():
     a, b_ = chunk(d)[0], chunk(d)[0]
     assert a.id == b_.id == "abababababab-0000"
     assert a.source.filename == "a.pdf" and a.source.backend == "xberg" and a.source.content_hash == "ab" * 32
+
+
+def test_table_blocks_without_a_canonical_table_keep_their_text():
+    d = doc([b(0, "table", "Orphan table text")])
+    assert [c.text for c in chunk(d)] == ["Orphan table text"]
+
+
+def test_empty_layout_blocks_still_fall_back_to_page_text():
+    d = doc([b(0, "paragraph", "")], pages=[Page(page=1, text="Page content")])
+    assert [c.text for c in chunk(d)] == ["Page content"]

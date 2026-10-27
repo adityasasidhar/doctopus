@@ -18,6 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 docling = ["docling>=2.143", "rapidocr", "onnxruntime"]
+paddleocr = ["paddleocr[doc-parser]>=3.4,<4", "paddlepaddle>=3.2,<4"]
 markitdown = ["markitdown[docx,pptx,xlsx,xls,pdf]>=0.1.9"]
 pymupdf4llm = ["pymupdf>=2.0"]  # AGPL-3.0; includes the former pymupdf4llm -- optional, never in Lite
 ollama = ["ollama>=0.6", "pypdfium2"]

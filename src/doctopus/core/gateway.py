@@ -56,8 +56,9 @@ class Gateway:
         held = None  # first result that looked wrong; kept in case escalation does no better
         for i, bid in enumerate(order):
             be = registry.get(bid)
-            if not be.info().available:
-                errors.append(f"{bid}: not available")
+            info = be.info()
+            if not info.available:
+                errors.append(f"{bid}: {info.reason_unavailable or 'not available'}")
                 continue
             if not be.supports(p.suffix):
                 errors.append(f"{bid}: does not support .{p.suffix.lstrip('.')}")

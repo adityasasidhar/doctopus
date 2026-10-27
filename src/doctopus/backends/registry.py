@@ -22,6 +22,7 @@ def _lazy(module: str, cls: str):
 _FACTORIES = {
     "xberg": XbergBackend,
     "docling": _docling,
+    "paddleocr": _lazy("paddleocr", "PaddleOCRBackend"),
     "marker": _lazy("sidecar", "MarkerBackend"),
     "mineru": _lazy("sidecar", "MinerUBackend"),
     "ollama": _lazy("ollama", "OllamaBackend"),

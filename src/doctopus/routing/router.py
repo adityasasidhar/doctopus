@@ -12,11 +12,14 @@ from __future__ import annotations
 import os
 
 from doctopus.core.models import BackendInfo, Decision, Mode
+from doctopus.core.errors import BackendUnavailable
 
 HEAVY_ORDER = [b.strip() for b in os.environ.get("DOCTOPUS_HEAVY_ORDER", "docling,marker,mineru,ollama").split(",")]
 
 
 def fits(b: BackendInfo, info: dict) -> tuple[bool, str]:
+    if b.id == "paddleocr":
+        return False, "paddleocr requires explicit selection until benchmarked"
     free = info.get("mem_available_mb")
     if b.ram_mb and free is not None and free < b.ram_mb:
         return False, f"{b.id} needs ~{b.ram_mb / 1000:.0f} GB RAM but only {free / 1000:.1f} GB is free"
@@ -29,7 +32,7 @@ def _handles(b: BackendInfo, info: dict) -> bool:
 
 def heavy_candidates(backends: list[BackendInfo], info: dict) -> list[BackendInfo]:
     rank = {k: i for i, k in enumerate(HEAVY_ORDER)}
-    heavy = [b for b in backends if b.weight == "heavy" and _handles(b, info)]
+    heavy = [b for b in backends if b.id != "paddleocr" and b.weight == "heavy" and _handles(b, info)]
     return sorted(heavy, key=lambda b: rank.get(b.id, len(rank)))
 
 
@@ -55,6 +58,11 @@ def decide(info: dict, *, mode: Mode, backends: list[BackendInfo], preferred: st
         r.append(f"manual: {preferred_by} {preferred}")
         return done(preferred)
     available = [b for b in backends if b.available]
+    if any(b.id == "paddleocr" for b in available):
+        available = [b for b in available if b.id != "paddleocr"]
+        r.append("paddleocr is opt-in: select it explicitly with backend='paddleocr'")
+        if not available:
+            raise BackendUnavailable("no backend available for automatic routing; select paddleocr explicitly")
     if not available:
         r.append("no backend installed")
         return done("xberg")

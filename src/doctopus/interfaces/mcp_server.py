@@ -11,7 +11,7 @@ from doctopus.core.errors import DoctopusError, InputRejected
 from doctopus.core.gateway import Gateway
 
 MAX_CHARS_DEFAULT = 60_000
-Engine = Literal["auto", "xberg", "docling", "marker", "mineru", "ollama", "pymupdf4llm", "markitdown"]
+Engine = Literal["auto", "xberg", "docling", "marker", "mineru", "ollama", "pymupdf4llm", "markitdown", "paddleocr"]
 
 
 def build_server(root: Path, backend: str | None = None) -> MCPServer:
