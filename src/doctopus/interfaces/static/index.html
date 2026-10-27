@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Doctopus</title>
+<style>
+:root{--bg:#0f1020;--panel:#181a33;--line:#2a2d55;--ink:#e8e9ff;--mute:#9a9cc8;--a:#8b7cff;--b:#2ee6c5;--warn:#ffcc66;color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--bg:#f6f6ff;--panel:#fff;--line:#d9dbf3;--ink:#16173a;--mute:#5d6090;--a:#5b49e6;--b:#079c84;--warn:#a86a00;color-scheme:light}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+header{padding:20px 24px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:22px}header small{color:var(--mute)}
+main{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px 24px;max-width:1500px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+#drop{border:2px dashed var(--line);border-radius:12px;padding:28px 12px;text-align:center;color:var(--mute);cursor:pointer}
+#drop.over{border-color:var(--a);color:var(--ink)}
+label{display:block;margin:12px 0 4px;color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+select,button{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+button{background:var(--a);border:0;color:#fff;font-weight:600;margin-top:14px;cursor:pointer}button:disabled{opacity:.5}
+.why li{margin:3px 0}.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--a);color:#fff;font-weight:600}
+.pill.xberg{background:var(--b);color:#00362d}.stats{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;color:var(--mute)}.stats b{color:var(--ink)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{width:auto;margin:0;background:var(--bg);color:var(--mute);border:1px solid var(--line)}.tabs button.on{background:var(--a);color:#fff}
+pre{white-space:pre-wrap;word-break:break-word;max-height:68vh;overflow:auto;margin:0;font:13px/1.5 ui-monospace,monospace}
+table{border-collapse:collapse}td,th{border:1px solid var(--line);padding:3px 8px}.warn{color:var(--warn)}
+</style></head><body>
+<header><div style="font-size:34px">🐙</div><div><h1>Doctopus</h1><small>Many arms. One API.</small></div></header>
+<main>
+<section class="card">
+  <div id="drop">Drop a PDF / DOCX / PPTX / image<br><small>or click to choose</small></div>
+  <input id="f" type="file" hidden>
+  <div id="fname" style="margin-top:8px;color:var(--mute)"></div>
+  <label for="backend">Engine</label>
+  <select id="backend"><option value="auto">auto (router decides)</option><option>xberg</option><option>docling</option></select>
+  <label for="mode">Mode</label>
+  <select id="mode"><option>balanced</option><option>fast</option><option>accurate</option></select>
+  <button id="go" disabled>Process</button>
+  <div id="status" style="margin-top:10px;color:var(--mute)"></div>
+</section>
+<section class="card" id="out" style="display:none">
+  <div><span class="pill" id="pill"></span> <span id="fb" class="warn"></span></div>
+  <div class="stats" id="stats"></div>
+  <ul class="why" id="why"></ul>
+  <div class="tabs"><button data-t="md" class="on">Markdown</button><button data-t="tables">Tables</button><button data-t="json">JSON</button></div>
+  <div id="view"></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);let file,doc;
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+$('drop').onclick=()=>$('f').click();
+$('f').onchange=e=>pick(e.target.files[0]);
+['dragover','dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.toggle('over',ev==='dragover');if(ev==='drop')pick(e.dataTransfer.files[0])}));
+function pick(f){if(!f)return;file=f;$('fname').textContent=f.name+' · '+(f.size/1024).toFixed(0)+' KB';$('go').disabled=false}
+$('go').onclick=async()=>{
+  const fd=new FormData();fd.append('file',file);fd.append('backend',$('backend').value);fd.append('mode',$('mode').value);
+  $('go').disabled=true;$('status').textContent='🐙 working…';const t0=performance.now();
+  try{const r=await fetch('/v1/parse',{method:'POST',body:fd});const j=await r.json();
+    if(!r.ok){$('status').textContent='Error: '+(j.message||JSON.stringify(j));return}
+    doc=j;$('status').textContent='done in '+((performance.now()-t0)/1000).toFixed(1)+' s (incl. upload)';show()}
+  catch(e){$('status').textContent='Error: '+e}finally{$('go').disabled=false}};
+function show(){const p=doc.processing;$('out').style.display='';
+  $('pill').textContent=p.backend;$('pill').className='pill '+p.backend;
+  $('fb').textContent=p.fallback_from?'↩ fell back from '+p.fallback_from:'';
+  $('stats').innerHTML=`<span><b>${p.elapsed_ms}</b> ms</span><span><b>${doc.meta.page_count??'?'}</b> pages</span><span><b>${doc.tables.length}</b> tables</span><span><b>${doc.blocks.length}</b> blocks</span><span>peak RSS <b>${p.peak_rss_mb??'?'}</b> MB</span>`;
+  $('why').innerHTML=(p.decision?.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')+p.warnings.map(w=>`<li class="warn">${esc(w)}</li>`).join('');
+  tab('md')}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function tab(t){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('view').innerHTML=t==='md'?`<pre>${esc(doc.markdown)}</pre>`:t==='json'?`<pre>${esc(JSON.stringify(doc,null,2))}</pre>`:
+  (doc.tables.length?doc.tables.map(x=>`<p class="stats">table ${esc(x.id)} · page ${x.page??'?'}</p><pre>${esc(x.markdown)}</pre>`).join(''):'<p>No tables found.</p>')}
+</script></body></html>

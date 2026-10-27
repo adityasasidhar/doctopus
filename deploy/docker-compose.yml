@@ -1,0 +1,11 @@
+services:
+  doctopus:
+    build: { context: .., dockerfile: deploy/Dockerfile }   # add args: { EXTRA: docling } for the Standard profile
+    ports: ["8000:8000"]
+    environment:
+      DOCTOPUS_API_TOKEN: ${DOCTOPUS_API_TOKEN:-}           # set this for any non-local deployment
+      DOCTOPUS_MAX_UPLOAD_MB: "50"
+    volumes: ["doctopus-data:/data"]                         # keeps the OCR model cache across restarts
+    mem_limit: 512m                                          # Lite profile target; Docling needs ~4 GB
+    restart: unless-stopped
+volumes: { doctopus-data: {} }
