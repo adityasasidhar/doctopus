@@ -137,6 +137,9 @@ def test_pdf_normalization_preserves_content_order_and_provenance(engine, tmp_pa
     assert engine.options["device"] == "cpu"
     assert engine.options["use_doc_unwarping"] is False
     assert engine.options["use_doc_orientation_classify"] is False
+    # paddle 3.3 oneDNN bug + >10 GB OOM with the default model set: keep the safe, light defaults
+    assert engine.options["enable_mkldnn"] is False and engine.options["use_formula_recognition"] is False
+    assert engine.options["text_recognition_model_name"] == "PP-OCRv5_mobile_rec"
 
 
 def wrap(raw):

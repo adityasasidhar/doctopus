@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Doctopus</title>
+<link rel="icon" type="image/png" href="/logo.png">
 <style>
 :root{--bg:#0f1020;--panel:#181a33;--line:#2a2d55;--ink:#e8e9ff;--mute:#9a9cc8;--a:#8b7cff;--b:#2ee6c5;--warn:#ffcc66;color-scheme:dark}
 @media (prefers-color-scheme:light){:root{--bg:#f6f6ff;--panel:#fff;--line:#d9dbf3;--ink:#16173a;--mute:#5d6090;--a:#5b49e6;--b:#079c84;--warn:#a86a00;color-scheme:light}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
 header{padding:20px 24px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--line)}
-header h1{margin:0;font-size:22px}header small{color:var(--mute)}
+header h1{margin:0;font-size:22px}header small{color:var(--mute)}header .logo{width:64px;height:64px;object-fit:contain;flex-shrink:0}
 main{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px 24px;max-width:1500px;margin:auto}
 @media(max-width:900px){main{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
@@ -21,7 +22,7 @@ button{background:var(--a);border:0;color:#fff;font-weight:600;margin-top:14px;c
 pre{white-space:pre-wrap;word-break:break-word;max-height:68vh;overflow:auto;margin:0;font:13px/1.5 ui-monospace,monospace}
 table{border-collapse:collapse}td,th{border:1px solid var(--line);padding:3px 8px}.warn{color:var(--warn)}
 </style></head><body>
-<header><div style="font-size:34px">🐙</div><div><h1>Doctopus</h1><small>Many arms. One API.</small></div></header>
+<header><img class="logo" src="/logo.png" alt="Doctopus logo" width="64" height="64"><div><h1>Doctopus</h1><small>Many arms. One API.</small></div></header>
 <main>
 <section class="card">
   <div id="drop">Drop a PDF / DOCX / PPTX / image<br><small>or click to choose</small></div>

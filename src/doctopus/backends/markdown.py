@@ -4,6 +4,7 @@ engines, so chunking, tables and the UI behave identically whichever engine ran.
 from __future__ import annotations
 
 import re
+from html.parser import HTMLParser
 
 from doctopus.backends.base import RawResult
 from doctopus.core.models import Block, Page, Table
@@ -12,12 +13,14 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _LIST = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.*)$")
 _TABLE_SEP = re.compile(r"^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$")
 _IMAGE = re.compile(r"^\s*!\[[^\]]*\]\([^)]*\)\s*$")
+_HTML_TABLE = re.compile(r"<table\b.*?</table>", re.I | re.S)
 
 
 def from_markdown(pages: list[tuple[int | None, str]], *, source: str, **extra) -> RawResult:
     """pages: (page number or None, markdown) in reading order."""
     blocks: list[Block] = []
     tables: list[Table] = []
+    pages = [(p, re.sub(r"\n{3,}", "\n\n", _HTML_TABLE.sub(_pipe_table, md))) for p, md in pages]  # MinerU & co. emit HTML tables
     for page, md in pages:
         _parse(md, page, source, blocks, tables)
     numbered = [(p, md) for p, md in pages if p is not None]
@@ -77,8 +80,49 @@ def _parse(md: str, page, source, blocks, tables):
     end_para()
 
 
+class _Rows(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.rows: list[list[str]] = []
+        self.cell: list[str] | None = None
+        self.span = 1
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self.rows.append([])
+        elif tag in ("td", "th"):
+            if not self.rows:
+                self.rows.append([])
+            self.cell, self.span = [], max(1, int(dict(attrs).get("colspan") or 1))
+        elif tag == "br" and self.cell is not None:
+            self.cell.append(" ")
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self.cell is not None:
+            text = " ".join("".join(self.cell).split()).replace("|", "\\|")
+            self.rows[-1] += [text] + [""] * (self.span - 1)  # pipe tables can't merge: pad the span
+            self.cell = None
+
+    def handle_data(self, data):
+        if self.cell is not None:
+            self.cell.append(data)
+
+
+def _pipe_table(m: re.Match) -> str:
+    parser = _Rows()
+    parser.feed(m.group(0))
+    rows = [r for r in parser.rows if r]
+    if not rows:
+        return m.group(0)
+    width = max(map(len, rows))
+    rows = [r + [""] * (width - len(r)) for r in rows]
+    lines = ["| " + " | ".join(r) + " |" for r in rows]
+    return "\n\n" + "\n".join([lines[0], "|" + "---|" * width, *lines[1:]]) + "\n\n"
+
+
 def _cells(row: str) -> list[str]:
-    return [c.strip() for c in row.strip().strip("|").split("|")]
+    row = re.sub(r"^\||(?<!\\)\|$", "", row.strip())
+    return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", row)]
 
 
 def _inline(s: str) -> str:

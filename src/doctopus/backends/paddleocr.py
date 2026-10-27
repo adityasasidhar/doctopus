@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import asyncio
 import mimetypes
+import os
 import re
 import threading
 from html.parser import HTMLParser
 from importlib import metadata, util
 from pathlib import Path
 
-from doctopus.backends.base import RawResult
+from doctopus.backends.base import RawResult, pkg_licence
 from doctopus.core.errors import BackendUnavailable, ExtractionFailed, InputRejected, UnsupportedFormat
 from doctopus.core.models import BackendInfo, Bbox, Block, Page, Table
 
@@ -44,7 +45,8 @@ class PaddleOCRBackend:
         )
         return BackendInfo(
             id=self.id, version=version, available=reason is None, reason_unavailable=reason,
-            formats=FORMATS, weight="heavy",
+            formats=FORMATS, weight="heavy", ram_mb=3500,  # measured peak ~2.8 GB RSS with the mobile model set
+            licence=pkg_licence("paddleocr") if version else None,
             capabilities={"ocr": True, "tables": True, "layout_model": True, "office": False, "bbox": True},
         )
 
@@ -71,10 +73,18 @@ class PaddleOCRBackend:
                     raise BackendUnavailable(f"paddleocr: {info.reason_unavailable}")
                 try:
                     from paddleocr import PPStructureV3
+                    formulas = os.environ.get("DOCTOPUS_PADDLE_FORMULAS") == "1"
                     self._pipeline = PPStructureV3(
                         device="cpu", use_doc_orientation_classify=False, use_doc_unwarping=False,
                         use_textline_orientation=False, use_table_recognition=True,
-                        use_formula_recognition=True, format_block_content=False,
+                        use_formula_recognition=formulas, format_block_content=False,
+                        # oneDNN in paddlepaddle 3.3 fails with "ConvertPirAttribute2RuntimeAttribute not support"
+                        enable_mkldnn=os.environ.get("DOCTOPUS_PADDLE_MKLDNN") == "1",
+                        # the default server OCR models + formula/seal/chart heads peaked >10 GB and got OOM-killed
+                        # on a 1-page PDF; the mobile set with them off peaks ~2.9 GB
+                        use_seal_recognition=False, use_chart_recognition=False,
+                        text_detection_model_name=os.environ.get("DOCTOPUS_PADDLE_DET", "PP-OCRv5_mobile_det"),
+                        text_recognition_model_name=os.environ.get("DOCTOPUS_PADDLE_REC", "PP-OCRv5_mobile_rec"),
                     )
                 except ImportError as e:
                     raise BackendUnavailable(f"paddleocr: {e}; install document-parsing dependencies with {INSTALL}") from e
