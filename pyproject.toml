@@ -2,6 +2,8 @@
 name = "doctopus"
 version = "0.1.0"
 description = "Many arms. One API. Open document-processing gateway with intelligent backend routing."
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "pydantic>=2",
