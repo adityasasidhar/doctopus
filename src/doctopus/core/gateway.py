@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import resource
 import time
 import uuid
@@ -10,7 +11,7 @@ from doctopus.backends import registry
 from doctopus.core.errors import DoctopusError, ExtractionFailed, InputRejected, UnsupportedFormat
 from doctopus.core.models import Decision, DocMeta, Document, Mode, Processing
 from doctopus.routing.inspect import inspect_file
-from doctopus.routing.router import decide, fits
+from doctopus.routing.router import decide, escalation_target
 
 MAX_BYTES = 200 * 1024 * 1024
 
@@ -18,30 +19,38 @@ MAX_BYTES = 200 * 1024 * 1024
 class Gateway:
     """The single entry point. CLI, REST and MCP are thin wrappers around this."""
 
-    def __init__(self, max_bytes: int = MAX_BYTES):
+    def __init__(self, max_bytes: int = MAX_BYTES, default_backend: str | None = None):
+        """default_backend: engine used when a request does not name one ("auto" = let the router decide).
+        Falls back to $DOCTOPUS_BACKEND, then "auto". A request that names an engine (or "auto") always wins."""
         self.max_bytes = max_bytes
+        self.default_backend = default_backend or os.environ.get("DOCTOPUS_BACKEND") or "auto"
+        if self.default_backend != "auto":
+            registry.get(self.default_backend)  # unknown id -> BackendUnavailable now, not on the first request
 
     def list_backends(self):
         return registry.list_info()
 
-    def plan(self, path: str | Path, *, backend: str = "auto", mode: Mode = "balanced") -> Decision:
+    def plan(self, path: str | Path, *, backend: str | None = None, mode: Mode = "balanced") -> Decision:
         """Routing decision only -- nothing is extracted."""
         p = self._check(path)
+        by = "user selected" if backend else "deployment default engine (DOCTOPUS_BACKEND / --backend):"
+        backend = backend or self.default_backend
         eff_mode: Mode = "manual" if backend != "auto" else mode
-        return decide(inspect_file(p), mode=eff_mode, available=registry.available_ids(),
-                      preferred=None if backend == "auto" else backend)
+        return decide(inspect_file(p), mode=eff_mode, backends=registry.list_info(),
+                      preferred=None if backend == "auto" else backend, preferred_by=by)
 
-    async def parse(self, path: str | Path, *, backend: str = "auto", mode: Mode = "balanced",
+    async def parse(self, path: str | Path, *, backend: str | None = None, mode: Mode = "balanced",
                     fallback: bool | None = None, ocr: bool | None = None) -> Document:
         p = self._check(path)
+        decision = self.plan(p, backend=backend, mode=mode)  # unresolved, so reasons say where the choice came from
+        backend = backend or self.default_backend
         manual = backend != "auto"
-        decision = self.plan(p, backend=backend, mode=mode)
         allow_fallback = (not manual) if fallback is None else fallback
 
         order = [decision.backend]
-        if allow_fallback and mode != "fast":
-            alt = [b for b in registry.available_ids() if b != decision.backend and fits(b, decision.inspection)[0]]
-            order += alt[:1]  # bounded: at most one retry
+        if allow_fallback and mode != "fast":  # bounded: at most one retry
+            if alt := escalation_target(decision.backend, registry.list_info(), decision.inspection):
+                order.append(alt)
 
         errors: list[str] = []
         held = None  # first result that looked wrong; kept in case escalation does no better
@@ -108,7 +117,8 @@ class Gateway:
             markdown=raw.markdown, text=raw.text, blocks=raw.blocks, tables=raw.tables, pages=raw.pages,
             processing=Processing(
                 backend=be.id, backend_version=be.info().version, mode=mode, elapsed_ms=elapsed_ms,
-                peak_rss_mb=round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1),
+                peak_rss_mb=round(max(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,  # sidecars run as children
+                                      resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss) / 1024, 1),
                 ocr_used=raw.ocr_used, fallback_from=fallback_from, warnings=warnings, decision=decision,
             ),
         )

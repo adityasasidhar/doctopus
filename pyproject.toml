@@ -16,6 +16,10 @@ dependencies = [
 
 [project.optional-dependencies]
 docling = ["docling>=2.143", "rapidocr", "onnxruntime"]
+markitdown = ["markitdown[docx,pptx,xlsx,xls,pdf]>=0.1.9"]
+pymupdf4llm = ["pymupdf>=2.0"]  # AGPL-3.0; includes the former pymupdf4llm -- optional, never in Lite
+ollama = ["ollama>=0.6", "pypdfium2"]
+# marker / mineru run as sidecar CLIs in their own uv tool envs (their pins conflict: pillow<11 vs >=11)
 dev = ["pypdfium2", "pytest>=8", "httpx>=0.27", "fpdf2>=2.8", "python-docx>=1.1"]
 
 [project.scripts]

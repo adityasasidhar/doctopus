@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from enum import Enum
 from pathlib import Path
@@ -17,6 +18,7 @@ app = typer.Typer(help="Doctopus 🐙  Many arms. One API.", no_args_is_help=Tru
 backends_app = typer.Typer(help="Inspect available engines.", no_args_is_help=True)
 app.add_typer(backends_app, name="backends")
 err = Console(stderr=True, soft_wrap=True)  # logs never touch stdout
+BACKEND_HELP = "auto | engine id (see `doctopus backends list`); default: $DOCTOPUS_BACKEND, else auto"
 
 
 class Fmt(str, Enum):
@@ -39,7 +41,7 @@ def _fail(e: Exception, code: int):
 @app.command()
 def parse(
     file: Path = typer.Argument(..., help="Document to process"),
-    backend: str = typer.Option("auto", "--backend", "-b", help="auto | xberg | docling"),
+    backend: str | None = typer.Option(None, "--backend", "-b", help=BACKEND_HELP),
     mode: Mode = typer.Option(Mode.balanced, "--mode", "-m", help="fast | balanced | accurate"),
     fmt: Fmt = typer.Option(Fmt.md, "--format", "-f"),
     output: Path | None = typer.Option(None, "--output", "-o", help="Write result here instead of stdout"),
@@ -78,14 +80,17 @@ def chunk(
     paths: list[Path] = typer.Argument(..., help="Files and/or directories (searched recursively)"),
     output: Path | None = typer.Option(None, "--output", "-o", help="Write JSONL here instead of stdout"),
     max_chars: int = typer.Option(1500, "--max-chars", help="Target chunk size; tables are never split"),
-    backend: str = typer.Option("auto", "--backend", "-b", help="auto | xberg | docling"),
+    backend: str | None = typer.Option(None, "--backend", "-b", help=BACKEND_HELP),
     mode: Mode = typer.Option(Mode.balanced, "--mode", "-m", help="fast | balanced | accurate"),
 ):
     """Export layout-aware chunks as JSONL (one chunk per line) for RAG or dataset building."""
     from doctopus.core.chunk import chunk as make_chunks
 
-    gw = Gateway()
-    exts = {f for i in gw.list_backends() if i.available for f in i.formats}
+    try:
+        gw = Gateway()
+    except DoctopusError as e:  # e.g. an unknown $DOCTOPUS_BACKEND
+        _fail(e, 2)
+    exts ={f for i in gw.list_backends() if i.available for f in i.formats}
     files = []
     for p in paths:
         if p.is_dir():
@@ -131,7 +136,7 @@ def chunk(
 def plan(
     file: Path,
     mode: Mode = typer.Option(Mode.balanced, "--mode", "-m"),
-    backend: str = typer.Option("auto", "--backend", "-b"),
+    backend: str | None = typer.Option(None, "--backend", "-b", help=BACKEND_HELP),
 ):
     """Show which engine the router would pick, and why (no extraction)."""
     try:
@@ -148,26 +153,42 @@ def backends_list(as_json: bool = typer.Option(False, "--json")):
         typer.echo(json.dumps([i.model_dump() for i in infos], indent=2))
         return
     t = RichTable(title="Doctopus backends")
-    for c in ("id", "version", "weight", "status", "capabilities"):
+    for c in ("id", "version", "weight", "runs", "status", "licence"):
         t.add_column(c)
     for i in infos:
-        t.add_row(i.id, i.version or "-", i.weight,
+        t.add_row(i.id, i.version or "-", i.weight + (f" ({i.ram_mb / 1000:.0f} GB)" if i.ram_mb else ""), i.runtime,
                   "[green]ready[/green]" if i.available else f"[red]{i.reason_unavailable}[/red]",
-                  ", ".join(k for k, v in i.capabilities.items() if v))
+                  (i.licence or "?").split(";")[0])
     Console().print(t)
 
 
+def _set_default_backend(backend: str | None):
+    """Validate, then hand the choice to the server process via the env var the Gateway reads."""
+    if backend:
+        try:
+            Gateway(default_backend=backend)
+        except DoctopusError as e:
+            _fail(e, 2)
+        os.environ["DOCTOPUS_BACKEND"] = backend
+
+
 @app.command()
-def serve(host: str = "127.0.0.1", port: int = 8000):
+def serve(host: str = "127.0.0.1", port: int = 8000,
+          backend: str | None = typer.Option(None, "--backend", "-b", help="Default engine for requests that "
+                                             "do not name one; " + BACKEND_HELP)):
     """Start the REST API + demo UI."""
     import uvicorn
+    _set_default_backend(backend)
     uvicorn.run("doctopus.interfaces.api:app", host=host, port=port, log_level="warning")
 
 
 @app.command()
-def mcp(root: Path = typer.Option(Path.cwd(), "--root", help="Only files under this directory are readable")):
+def mcp(root: Path = typer.Option(Path.cwd(), "--root", help="Only files under this directory are readable"),
+        backend: str | None = typer.Option(None, "--backend", "-b", help="Default engine for tool calls that "
+                                           "do not name one; " + BACKEND_HELP)):
     """Run the MCP server over stdio."""
     from doctopus.interfaces.mcp_server import run_stdio
+    _set_default_backend(backend)
     run_stdio(root)
 
 

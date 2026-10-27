@@ -45,6 +45,31 @@ uv run doctopus parse path/to/document.pdf --mode accurate
 
 The standard installation is substantially larger and Docling needs around 4 GB of available RAM for automatic selection. Check installed engines with `uv run doctopus backends list`.
 
+## Engines
+
+Every engine returns the same `Document` schema, so you can swap one for another without changing the code that consumes the output. Install only the engines you need.
+
+| Engine | Kind | Runs | Install | Licence |
+| --- | --- | --- | --- | --- |
+| `xberg` | Light: text layer, OCR, tables | In-process | Included | MIT |
+| `markitdown` | Light: Office, HTML and spreadsheets; no OCR | In-process | `uv sync --extra markitdown` | MIT |
+| `pymupdf4llm` | Light: MuPDF text layer, small layout model, OCR | In-process | `uv sync --extra pymupdf4llm` | AGPL-3.0 |
+| `docling` | Heavy: layout and table models | In-process | `uv sync --extra docling` | MIT |
+| `marker` | Heavy: layout models, equations | Sidecar | `uv tool install --python 3.12 marker-pdf` | Apache-2.0 code; model weights under modified OpenRAIL-M |
+| `mineru` | Heavy: layout models, formulas, Office | Sidecar | `uv tool install --python 3.12 mineru` | MinerU Open Source License |
+| `ollama` | Heavy: local vision-language model | Ollama service | `uv sync --extra ollama` and `ollama pull qwen3-vl:2b` | MIT client; model licence varies |
+
+Sidecar engines run as separate command-line tools in their own `uv tool` environments. Marker and MinerU have conflicting dependency pins, so they cannot share one environment, and a separate process returns its memory when each job finishes. Doctopus never passes MinerU's `--remote` flag, so documents stay on the machine. Marker defaults to its CPU `fast` mode; set `DOCTOPUS_MARKER_MODE=balanced` if you run its GPU vision-model container.
+
+Check each licence against your use before deploying, particularly AGPL-3.0 and the Marker model weights.
+
+### Choosing an engine
+
+- **Per request:** `--backend` / `-b` on the CLI, the `backend` form field in REST, the `backend` argument on MCP tools, or the engine selector in the demo UI.
+- **Per deployment:** `DOCTOPUS_BACKEND=marker`, or `doctopus serve --backend marker` / `doctopus mcp --backend marker`. This applies to requests that do not name an engine.
+- **Router:** `auto`, the default, lets the router choose. A request that names an engine, or `auto`, always overrides the deployment default. The routing reasons say which source the choice came from.
+- **Accurate mode:** `--mode accurate` uses the first heavy engine that supports the format and fits in free memory. The order is `docling,marker,mineru,ollama`; change it with `DOCTOPUS_HEAVY_ORDER`.
+
 ## Interfaces
 
 ### Command line
@@ -140,7 +165,7 @@ CLI · REST · MCP · Python
 | --- | --- | --- |
 | `fast` | Xberg when available | None |
 | `balanced` (default) | Xberg when available | At most one alternative, if available and suitable |
-| `accurate` | Docling when installed and sufficient memory is available; otherwise Xberg | At most one alternative, if available and suitable |
+| `accurate` | The first heavy engine in `DOCTOPUS_HEAVY_ORDER` that supports the format and fits in free memory; otherwise Xberg | At most one alternative, if available and suitable |
 | Explicit backend | The requested engine | None by default |
 
 A PDF or image result is considered suspicious when it has fewer than 20 characters per page, or when the engine reports quality below 0.5. If an escalation fails or also looks suspicious and yields no more text, the gateway keeps the original result and adds a warning. These are heuristics, not guarantees of extraction quality. Inspect the returned warnings and validate output for your documents.

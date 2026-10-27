@@ -6,7 +6,7 @@ import logging
 from importlib import metadata, util
 from pathlib import Path
 
-from doctopus.backends.base import RawResult
+from doctopus.backends.base import RawResult, pkg_licence
 from doctopus.core.errors import BackendUnavailable, ExtractionFailed
 from doctopus.core.models import BackendInfo, Bbox, Block, Page, Table
 
@@ -31,7 +31,8 @@ class DoclingBackend:
             id=self.id, version=ver, available=ok,
             reason_unavailable=None if ok else "uv sync --extra docling", formats=FORMATS,
             capabilities={"ocr": True, "tables": True, "layout_model": True, "office": True, "bbox": True},
-            weight="heavy",
+            weight="heavy", ram_mb=4000,  # measured peak RSS ~3.2 GB + headroom
+            licence=pkg_licence("docling"),
         )
 
     def supports(self, ext: str) -> bool:
