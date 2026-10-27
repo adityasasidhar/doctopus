@@ -25,7 +25,7 @@ class MarkItDownBackend:
         except metadata.PackageNotFoundError:
             ver = None
         return BackendInfo(
-            id=self.id, version=ver, available=ok, reason_unavailable=None if ok else "uv sync --extra markitdown",
+            id=self.id, version=ver, available=ok, reason_unavailable=None if ok else 'pip install "doctopus-ai[markitdown]"',
             formats=FORMATS, capabilities={"ocr": False, "tables": True, "layout_model": False, "office": True,
                                            "bbox": False},
             weight="light", licence=pkg_licence("markitdown"),

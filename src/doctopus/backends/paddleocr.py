@@ -15,7 +15,7 @@ from doctopus.core.errors import BackendUnavailable, ExtractionFailed, InputReje
 from doctopus.core.models import BackendInfo, Bbox, Block, Page, Table
 
 FORMATS = ["pdf", "png", "jpg", "jpeg", "bmp", "tif", "tiff"]
-INSTALL = "uv sync --extra paddleocr"
+INSTALL = 'pip install "doctopus-ai[paddleocr]"'
 _LABELS = {
     "doc_title": "heading", "paragraph_title": "heading", "abstract_title": "heading",
     "reference_title": "heading", "content_title": "heading", "text": "paragraph",

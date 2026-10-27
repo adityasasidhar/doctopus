@@ -36,7 +36,7 @@ src/doctopus/
   bench/       # benchmark runner
 tests/         # pytest suite, smoke scripts, fixture generator
 fixtures/      # sample documents and ground truth
-docs/          # specs and plans
+docs/          # documentation site (MkDocs); design specs and plans under docs/superpowers/
 ```
 
 Design rules that keep the codebase coherent:
@@ -99,7 +99,9 @@ The `paddleocr` adapter wraps PP-StructureV3 for PDFs and images. Keep pipeline 
 
 ## Documentation
 
-- User-facing behavior changes (new flags, endpoints, routing rules, schema fields) must be reflected in `README.md`.
+- User-facing behavior changes (new flags, endpoints, routing rules, schema fields) must be reflected in `README.md` and the documentation site under `docs/`.
+- Preview the site with `uv sync --group docs` then `uv run mkdocs serve`. CI builds it with `mkdocs build --strict`, so broken links fail the build.
+- The Python API reference is generated from docstrings with mkdocstrings; keep public docstrings accurate.
 - Design proposals and implementation plans go in `docs/superpowers/specs/` and `docs/superpowers/plans/`, dated `YYYY-MM-DD-<slug>.md`.
 - Keep the routing diagram and selection table in the README accurate.
 

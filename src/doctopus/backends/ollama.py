@@ -44,7 +44,7 @@ class OllamaBackend:
         if time.monotonic() - ts < 10:
             return ok, why
         if util.find_spec("ollama") is None or util.find_spec("pypdfium2") is None:
-            ok, why = False, "uv sync --extra ollama"
+            ok, why = False, 'pip install "doctopus-ai[ollama]"'
         else:
             try:
                 with urllib.request.urlopen(f"{self.host}/api/tags", timeout=0.5) as r:

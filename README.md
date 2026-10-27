@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/doctopus-logo.png" alt="Doctopus logo" width="340">
+  <img src="https://raw.githubusercontent.com/adityasasidhar/doctopus/main/assets/doctopus-logo.png" alt="Doctopus logo" width="340">
 
 # Doctopus
 
@@ -7,7 +7,7 @@
 
 Turn documents into structured, LLM-ready data with a single self-hosted gateway.
 
-[Quick start](#quick-start) · [Interfaces](#interfaces) · [Routing](#how-routing-works) · [Benchmarks](#benchmarks) · [Deploy](#deploy)
+[Documentation](https://adityasasidhar.github.io/doctopus/) · [Quick start](#quick-start) · [Interfaces](#interfaces) · [Routing](#how-routing-works) · [Benchmarks](#benchmarks) · [Deploy](#deploy)
 
 </div>
 
@@ -24,7 +24,15 @@ Doctopus parses PDFs, Office documents, and scans into Markdown, text, tables, a
 
 ## Quick start
 
-Doctopus requires **Python 3.12** and [uv](https://docs.astral.sh/uv/). From a checkout of this repository:
+Doctopus requires **Python 3.12**. Install it from PyPI as `doctopus-ai`; the import name and command are `doctopus`:
+
+```bash
+pip install doctopus-ai                # base install with the Xberg engine
+pip install "doctopus-ai[docling]"     # add optional engines as extras
+doctopus parse path/to/document.pdf
+```
+
+To work from a checkout of this repository instead, use [uv](https://docs.astral.sh/uv/):
 
 ```bash
 # Install the lightweight Xberg backend
@@ -346,8 +354,8 @@ uv run python tests/mcp_smoke.py
 Install `--extra docling` as well when developing or testing the optional backend.
 Use `--extra paddleocr` for real PP-StructureV3 extraction. PaddleOCR adapter tests use representative engine results so the normal unit suite requires no Paddle models.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and contribution workflow.
+See [CONTRIBUTING.md](https://github.com/adityasasidhar/doctopus/blob/main/CONTRIBUTING.md) for the project layout and contribution workflow.
 
 ## License
 
-Doctopus is [MIT licensed](LICENSE), as declared in `pyproject.toml`. Backend packages and model weights have their own licenses; the backend listing reports available license metadata, which may be incomplete and does not cover every dependency or model.
+Doctopus is [MIT licensed](https://github.com/adityasasidhar/doctopus/blob/main/LICENSE), as declared in `pyproject.toml`. Backend packages and model weights have their own licenses; the backend listing reports available license metadata, which may be incomplete and does not cover every dependency or model.

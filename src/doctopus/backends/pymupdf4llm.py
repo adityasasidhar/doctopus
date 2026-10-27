@@ -32,7 +32,7 @@ class PyMuPDF4LLMBackend:
         except metadata.PackageNotFoundError:
             ver = None
         return BackendInfo(
-            id=self.id, version=ver, available=ok, reason_unavailable=None if ok else "uv sync --extra pymupdf4llm",
+            id=self.id, version=ver, available=ok, reason_unavailable=None if ok else 'pip install "doctopus-ai[pymupdf4llm]"',
             formats=FORMATS, capabilities={"ocr": True, "tables": True, "layout_model": True, "office": False,
                                            "bbox": True},
             weight="light", licence=pkg_licence("pymupdf") or "AGPL-3.0",

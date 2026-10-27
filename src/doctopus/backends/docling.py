@@ -29,7 +29,7 @@ class DoclingBackend:
             ver = None
         return BackendInfo(
             id=self.id, version=ver, available=ok,
-            reason_unavailable=None if ok else "uv sync --extra docling", formats=FORMATS,
+            reason_unavailable=None if ok else 'pip install "doctopus-ai[docling]"', formats=FORMATS,
             capabilities={"ocr": True, "tables": True, "layout_model": True, "office": True, "bbox": True},
             weight="heavy", ram_mb=4000,  # measured peak RSS ~3.2 GB + headroom
             licence=pkg_licence("docling"),

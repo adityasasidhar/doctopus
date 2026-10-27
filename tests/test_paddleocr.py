@@ -85,8 +85,8 @@ def test_incomplete_install_is_actionable_without_loading_models(monkeypatch, in
     backend = adapter.PaddleOCRBackend()
     info = backend.info()
     assert not info.available
-    assert missing in info.reason_unavailable and "--extra paddleocr" in info.reason_unavailable
-    with pytest.raises(BackendUnavailable, match="--extra paddleocr"):
+    assert missing in info.reason_unavailable and "doctopus-ai[paddleocr]" in info.reason_unavailable
+    with pytest.raises(BackendUnavailable, match=r"doctopus-ai\[paddleocr\]"):
         asyncio.run(backend.process(Path("a.pdf")))
 
 
@@ -208,7 +208,7 @@ def test_missing_doc_parser_dependencies_are_actionable(monkeypatch, installed, 
         raise ImportError("Please install the doc-parser extra")
 
     monkeypatch.setitem(sys.modules, "paddleocr", SimpleNamespace(PPStructureV3=broken))
-    with pytest.raises(BackendUnavailable, match="--extra paddleocr"):
+    with pytest.raises(BackendUnavailable, match=r"doctopus-ai\[paddleocr\]"):
         asyncio.run(adapter.PaddleOCRBackend().process(tmp_path / "a.pdf"))
 
 
@@ -256,7 +256,7 @@ def test_paddle_is_not_an_automatic_fallback(paddle_gateway, monkeypatch, engine
 
 def test_missing_paddle_runtime_error_has_install_hint(monkeypatch, paddle_gateway):
     monkeypatch.setattr(adapter.util, "find_spec", lambda name: None if name == "paddle" else object())
-    with pytest.raises(ExtractionFailed, match="--extra paddleocr"):
+    with pytest.raises(ExtractionFailed, match=r"doctopus-ai\[paddleocr\]"):
         asyncio.run(Gateway().parse(paddle_gateway, backend="paddleocr"))
 
 

@@ -1,0 +1,59 @@
+/* Lavender palette taken from the Doctopus logo. */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #6e56cf;
+  --md-primary-fg-color--light: #9c8ce8;
+  --md-primary-fg-color--dark: #5640b0;
+  --md-accent-fg-color: #8b5cf6;
+  --md-accent-fg-color--transparent: rgba(139, 92, 246, 0.1);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #4c3a9a;
+  --md-primary-fg-color--light: #7a66d4;
+  --md-primary-fg-color--dark: #36296f;
+  --md-accent-fg-color: #b4a2ff;
+  --md-accent-fg-color--transparent: rgba(180, 162, 255, 0.1);
+  --md-typeset-a-color: #b4a2ff;
+}
+
+.md-header__button.md-logo img {
+  height: 1.8rem;
+}
+
+/* Landing page hero */
+.dx-hero {
+  text-align: center;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.dx-hero img {
+  width: 260px;
+  max-width: 70%;
+}
+
+.dx-hero h1 {
+  margin: 0.4rem 0 0.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dx-hero .dx-tagline {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--md-primary-fg-color);
+  margin: 0;
+}
+
+[data-md-color-scheme="slate"] .dx-hero .dx-tagline {
+  color: var(--md-accent-fg-color);
+}
+
+.dx-hero .dx-sub {
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.4rem;
+}
+
+.dx-hero .md-button {
+  margin: 0.3rem;
+}

@@ -1,0 +1,52 @@
+name: Publish to PyPI
+
+# Publishing a GitHub release tagged vX.Y.Z builds and uploads that version of doctopus-ai.
+# Uses PyPI trusted publishing: no API token is stored in the repository.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Check tag matches package version
+        if: github.event_name == 'release'
+        run: |
+          version=$(grep -Po '^__version__ = "\K[^"]+' src/doctopus/__init__.py)
+          test "${GITHUB_REF_NAME#v}" = "$version" || { echo "tag $GITHUB_REF_NAME != version $version"; exit 1; }
+      - run: uv build
+      - name: Smoke-test the wheel
+        run: |
+          uv venv /tmp/smoke --python 3.12
+          uv pip install --python /tmp/smoke dist/*.whl
+          /tmp/smoke/bin/doctopus --help
+          /tmp/smoke/bin/python -c "import doctopus; print(doctopus.__version__)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/doctopus-ai/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
