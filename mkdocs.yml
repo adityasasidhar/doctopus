@@ -51,7 +51,8 @@ theme:
     - toc.follow
 
 extra_css:
-  - stylesheets/extra.css
+  # Bump the revision when styles change so browsers fetch the updated design.
+  - stylesheets/extra.css?v=3d80b3a8
 
 extra:
   social:
