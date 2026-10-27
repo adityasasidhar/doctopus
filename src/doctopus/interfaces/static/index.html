@@ -3,72 +3,231 @@
 <title>Doctopus</title>
 <link rel="icon" type="image/png" href="/logo.png">
 <style>
-:root{--bg:#0f1020;--panel:#181a33;--line:#2a2d55;--ink:#e8e9ff;--mute:#9a9cc8;--a:#8b7cff;--b:#2ee6c5;--warn:#ffcc66;color-scheme:dark}
-@media (prefers-color-scheme:light){:root{--bg:#f6f6ff;--panel:#fff;--line:#d9dbf3;--ink:#16173a;--mute:#5d6090;--a:#5b49e6;--b:#079c84;--warn:#a86a00;color-scheme:light}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
-header{padding:20px 24px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--line)}
-header h1{margin:0;font-size:22px}header small{color:var(--mute)}header .logo{width:64px;height:64px;object-fit:contain;flex-shrink:0}
-main{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px 24px;max-width:1500px;margin:auto}
-@media(max-width:900px){main{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-#drop{border:2px dashed var(--line);border-radius:12px;padding:28px 12px;text-align:center;color:var(--mute);cursor:pointer}
-#drop.over{border-color:var(--a);color:var(--ink)}
-label{display:block;margin:12px 0 4px;color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-select,button{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
-button{background:var(--a);border:0;color:#fff;font-weight:600;margin-top:14px;cursor:pointer}button:disabled{opacity:.5}
-.why li{margin:3px 0}.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--a);color:#fff;font-weight:600}
-.pill.xberg{background:var(--b);color:#00362d}.stats{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;color:var(--mute)}.stats b{color:var(--ink)}
-.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{width:auto;margin:0;background:var(--bg);color:var(--mute);border:1px solid var(--line)}.tabs button.on{background:var(--a);color:#fff}
-pre{white-space:pre-wrap;word-break:break-word;max-height:68vh;overflow:auto;margin:0;font:13px/1.5 ui-monospace,monospace}
-table{border-collapse:collapse}td,th{border:1px solid var(--line);padding:3px 8px}.warn{color:var(--warn)}
+:root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#86868b;--hair:#e3e3e8;--wash:#f5f5f7;
+  --a:#7a5af8;--a-wash:#f1edff;--good:#1a7f37;--good-wash:#e9f7ee;--warn:#9a6700;--warn-wash:#fff6e0;--bad:#c2252c;
+  --code:#1d1d1f;--code-ink:#f5f5f7;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#161618;--ink:#f5f5f7;--ink2:#a1a1a6;--ink3:#6e6e73;--hair:#2c2c2e;
+  --wash:#1d1d1f;--a:#a996ff;--a-wash:#241d40;--good:#4ac26b;--good-wash:#12261a;--warn:#e3b341;--warn-wash:#2a2110;
+  --bad:#ff6b6b;--code:#0b0b0c;--code-ink:#e5e5ea;color-scheme:dark}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--hair)}
+header .wrap{display:flex;align-items:center;gap:12px;height:60px}
+header img{width:36px;height:36px}
+header b{font-size:19px;letter-spacing:-.02em}
+header .tag{color:var(--ink3);font-size:14px}
+#health{margin-left:auto;font-size:13px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--wash);color:var(--ink2)}
+#health.ok{background:var(--good-wash);color:var(--good)}
+#health.ok::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);margin-right:7px;vertical-align:1px}
+.hero{padding:44px 0 26px}
+.hero h1{font-size:44px;line-height:1.05;letter-spacing:-.035em;font-weight:700}
+.hero h1 span{color:var(--a)}
+.hero p{color:var(--ink2);font-size:18px;margin-top:10px}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start;padding-bottom:60px}
+@media(max-width:920px){.grid{grid-template-columns:1fr}.hero h1{font-size:34px}}
+.card{background:var(--card);border-radius:22px;padding:22px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.side{position:sticky;top:80px}
+#drop{border:1.5px dashed var(--hair);border-radius:16px;padding:30px 16px;text-align:center;cursor:pointer;transition:.15s}
+#drop:hover,#drop.over{border-color:var(--a);background:var(--a-wash)}
+#drop .ico{width:46px;height:46px;margin:0 auto 10px;border-radius:13px;background:var(--a-wash);display:grid;place-items:center}
+#drop .ico svg{width:24px;height:24px;stroke:var(--a);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#drop b{display:block;font-size:16px}
+#drop small{color:var(--ink3)}
+#file{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--wash);font-size:14px;align-items:center;gap:8px}
+#file.on{display:flex}#file span{color:var(--ink3);margin-left:auto;white-space:nowrap}
+#file b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbl{display:block;margin:18px 0 7px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--hair);background:var(--card)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--wash);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;padding:8px 0;border-radius:10px;font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.hint{font-size:12.5px;color:var(--ink3);margin-top:7px;min-height:18px}
+#go{width:100%;margin-top:20px;padding:13px;border:0;border-radius:14px;background:var(--a);color:#fff;font-weight:600;font-size:16px;cursor:pointer;transition:.15s}
+#go:hover{filter:brightness(1.08)}#go:disabled{opacity:.4;cursor:default;filter:none}
+#status{margin-top:12px;font-size:14px;color:var(--ink2);min-height:21px}
+#status.err{color:var(--bad)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--a-wash);border-top-color:var(--a);border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes s{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:70px 20px;color:var(--ink3)}
+.empty img{width:150px;height:150px;opacity:.95}
+.empty h2{color:var(--ink);font-size:22px;letter-spacing:-.02em;margin-top:8px}
+.empty .fmts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.empty .fmts span{font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--wash);color:var(--ink2)}
+#out{display:none}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--wash);border-radius:14px;padding:12px 14px}
+.stat small{display:block;font-size:12px;color:var(--ink3);font-weight:500}
+.stat b{font-size:22px;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.stat.eng{background:var(--a-wash)}.stat.eng b{color:var(--a)}
+.why{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.why div{font-size:14px;padding:8px 12px;border-radius:10px;background:var(--wash);color:var(--ink2)}
+.why div.pick{background:var(--a-wash);color:var(--ink);font-weight:600}
+.why div.w{background:var(--warn-wash);color:var(--warn)}
+.why div.fb{background:var(--good-wash);color:var(--good)}
+.bar{display:flex;align-items:center;gap:10px;margin:20px 0 12px;flex-wrap:wrap}
+.tabs{display:flex;background:var(--wash);border-radius:12px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:10px;font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.acts{margin-left:auto;display:flex;gap:8px}
+.acts button{border:1px solid var(--hair);background:var(--card);padding:7px 13px;border-radius:10px;font-size:13.5px;font-weight:500;cursor:pointer}
+.acts button:hover{border-color:var(--a);color:var(--a)}
+#view{max-height:64vh;overflow:auto;border-radius:14px}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--code);color:var(--code-ink);padding:18px;border-radius:14px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+.doc{padding:6px 4px;font-size:15.5px;line-height:1.65}
+.doc h1,.doc h2,.doc h3{letter-spacing:-.02em;line-height:1.25;margin:20px 0 8px}
+.doc h1{font-size:26px}.doc h2{font-size:20px}.doc h3{font-size:17px}
+.doc>:first-child{margin-top:0}.doc p{margin:8px 0}.doc ul{margin:8px 0 8px 22px}
+.doc table,.tbl table{border-collapse:collapse;margin:12px 0;font-size:14px;font-variant-numeric:tabular-nums}
+.doc th,.doc td,.tbl th,.tbl td{border-bottom:1px solid var(--hair);padding:7px 12px;text-align:left}
+.doc th,.tbl th{font-weight:600;background:var(--wash)}
+.tbl{margin-bottom:22px;overflow:auto}.tbl h4{font-size:13px;color:var(--ink3);font-weight:600}
+.chunk{background:var(--wash);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.chunk .m{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chunk .m span{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--card);color:var(--ink2)}
+.chunk .m span.k{background:var(--a-wash);color:var(--a)}
+.chunk p{font-size:14px;color:var(--ink2);white-space:pre-wrap;word-break:break-word}
+footer{text-align:center;color:var(--ink3);font-size:13px;padding:0 0 36px}
 </style></head><body>
-<header><img class="logo" src="/logo.png" alt="Doctopus logo" width="64" height="64"><div><h1>Doctopus</h1><small>Many arms. One API.</small></div></header>
-<main>
-<section class="card">
-  <div id="drop">Drop a PDF / DOCX / PPTX / image<br><small>or click to choose</small></div>
-  <input id="f" type="file" hidden>
-  <div id="fname" style="margin-top:8px;color:var(--mute)"></div>
-  <label for="backend">Engine</label>
-  <select id="backend"><option value="auto">auto (router decides)</option></select>
-  <label for="mode">Mode</label>
-  <select id="mode"><option>balanced</option><option>fast</option><option>accurate</option></select>
-  <button id="go" disabled>Process</button>
-  <div id="status" style="margin-top:10px;color:var(--mute)"></div>
-</section>
-<section class="card" id="out" style="display:none">
-  <div><span class="pill" id="pill"></span> <span id="fb" class="warn"></span></div>
-  <div class="stats" id="stats"></div>
-  <ul class="why" id="why"></ul>
-  <div class="tabs"><button data-t="md" class="on">Markdown</button><button data-t="tables">Tables</button><button data-t="json">JSON</button></div>
-  <div id="view"></div>
-</section>
-</main>
+<header><div class="wrap"><img src="/logo.png" alt="Doctopus logo"><b>Doctopus</b><span class="tag">Many arms. One API.</span><span id="health">Connecting…</span></div></header>
+
+<div class="wrap">
+  <section class="hero">
+    <h1>Any document in.<br><span>Clean, structured data out.</span></h1>
+    <p>Drop a file. Doctopus picks the right engine, explains why, and returns Markdown, tables and RAG-ready chunks.</p>
+  </section>
+
+  <div class="grid">
+    <aside class="card side">
+      <div id="drop" tabindex="0" role="button" aria-label="Choose a document">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg></div>
+        <b>Drop a document</b><small>or click to choose</small>
+      </div>
+      <input id="f" type="file" hidden>
+      <div id="file"><b id="fname"></b><span id="fsize"></span></div>
+
+      <span class="lbl">Engine</span>
+      <select id="backend"><option value="auto">Auto: let the router decide</option></select>
+
+      <span class="lbl">Mode</span>
+      <div class="seg" id="mode">
+        <button data-v="fast">Fast</button><button data-v="balanced" class="on">Balanced</button><button data-v="accurate">Accurate</button>
+      </div>
+      <div class="hint" id="modehint"></div>
+
+      <button id="go" disabled>Process</button>
+      <div id="status"></div>
+    </aside>
+
+    <main class="card">
+      <div class="empty" id="empty">
+        <img src="/logo.png" alt="">
+        <h2>Nothing parsed yet</h2>
+        <p>Drop a file on the left to see the result here.</p>
+        <div class="fmts"><span>PDF</span><span>DOCX</span><span>PPTX</span><span>XLSX</span><span>CSV</span><span>HTML</span><span>EPUB</span><span>EML</span><span>PNG</span><span>JPEG</span><span>TIFF</span><span>+ 14 more</span></div>
+      </div>
+      <div id="out">
+        <div class="stats" id="stats"></div>
+        <div class="why" id="why"></div>
+        <div class="bar">
+          <div class="tabs" id="tabs">
+            <button data-t="preview" class="on">Preview</button><button data-t="md">Markdown</button><button data-t="tables">Tables</button><button data-t="chunks">Chunks</button><button data-t="json">JSON</button>
+          </div>
+          <div class="acts"><button id="copy">Copy</button><button id="dl">Download</button></div>
+        </div>
+        <div id="view"></div>
+      </div>
+    </main>
+  </div>
+</div>
+<footer>Doctopus runs on this machine. Your documents never leave it.</footer>
+
 <script>
-const $=id=>document.getElementById(id);let file,doc;
-const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-fetch('/v1/backends').then(r=>r.ok?r.json():[]).then(bs=>bs.forEach(b=>{const o=document.createElement('option');
-  o.value=b.id;o.disabled=!b.available;o.textContent=`${b.id} · ${b.weight}${b.runtime!=='in-process'?' · '+b.runtime:''}`+(b.available?'':` — ${b.reason_unavailable}`);
-  o.title=b.licence||'';$('backend').append(o)})).then(()=>fetch('/v1/health')).then(r=>r.json())
-  .then(h=>{if(h.default_backend)$('backend').value=h.default_backend}).catch(()=>{});
+const $=id=>document.getElementById(id);
+let file,doc,chunks,tab='preview',mode='balanced';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const HINTS={fast:'Light engine only, no retries.',balanced:'Light engine first, one stronger retry if output looks wrong.',accurate:'Prefer a heavy layout engine. Slower.'};
+$('modehint').textContent=HINTS[mode];
+
+fetch('/v1/backends').then(r=>r.ok?r.json():[]).then(bs=>{bs.forEach(b=>{const o=document.createElement('option');
+  o.value=b.id;o.disabled=!b.available;o.textContent=`${b.id} · ${b.weight}`+(b.available?'':' (unavailable)');$('backend').append(o)})})
+  .then(()=>fetch('/v1/health')).then(r=>r.json()).then(h=>{
+    const n=(h.backends_ready||[]).length;$('health').textContent=`${n} engine${n===1?'':'s'} ready`;$('health').className='ok';
+    if(h.default_backend)$('backend').value=h.default_backend}).catch(()=>{$('health').textContent='Server offline'});
+
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{mode=b.dataset.v;
+  document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b));$('modehint').textContent=HINTS[mode]});
 $('drop').onclick=()=>$('f').click();
+$('drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('f').click()}};
 $('f').onchange=e=>pick(e.target.files[0]);
-['dragover','dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.toggle('over',ev==='dragover');if(ev==='drop')pick(e.dataTransfer.files[0])}));
-function pick(f){if(!f)return;file=f;$('fname').textContent=f.name+' · '+(f.size/1024).toFixed(0)+' KB';$('go').disabled=false}
+['dragover','dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();
+  $('drop').classList.toggle('over',ev==='dragover');if(ev==='drop')pick(e.dataTransfer.files[0])}));
+function pick(f){if(!f)return;file=f;$('fname').textContent=f.name;
+  $('fsize').textContent=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':Math.max(1,Math.round(f.size/1024))+' KB';
+  $('file').classList.add('on');$('go').disabled=false;$('status').textContent='';$('status').className=''}
+
+function form(extra={}){const fd=new FormData();fd.append('file',file);
+  const b=extra.backend??$('backend').value;if(b)fd.append('backend',b);fd.append('mode',mode);
+  for(const[k,v]of Object.entries(extra))if(k!=='backend')fd.append(k,v);return fd}
+
 $('go').onclick=async()=>{
-  const fd=new FormData();fd.append('file',file);fd.append('backend',$('backend').value);fd.append('mode',$('mode').value);
-  $('go').disabled=true;$('status').textContent='🐙 working…';const t0=performance.now();
-  try{const r=await fetch('/v1/parse',{method:'POST',body:fd});const j=await r.json();
-    if(!r.ok){$('status').textContent='Error: '+(j.message||JSON.stringify(j));return}
-    doc=j;$('status').textContent='done in '+((performance.now()-t0)/1000).toFixed(1)+' s (incl. upload)';show()}
-  catch(e){$('status').textContent='Error: '+e}finally{$('go').disabled=false}};
-function show(){const p=doc.processing;$('out').style.display='';
-  $('pill').textContent=p.backend;$('pill').className='pill '+p.backend;
-  $('fb').textContent=p.fallback_from?'↩ fell back from '+p.fallback_from:'';
-  $('stats').innerHTML=`<span><b>${p.elapsed_ms}</b> ms</span><span><b>${doc.meta.page_count??'?'}</b> pages</span><span><b>${doc.tables.length}</b> tables</span><span><b>${doc.blocks.length}</b> blocks</span><span>peak RSS <b>${p.peak_rss_mb??'?'}</b> MB</span>`;
-  $('why').innerHTML=(p.decision?.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')+p.warnings.map(w=>`<li class="warn">${esc(w)}</li>`).join('');
-  tab('md')}
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
-function tab(t){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  $('view').innerHTML=t==='md'?`<pre>${esc(doc.markdown)}</pre>`:t==='json'?`<pre>${esc(JSON.stringify(doc,null,2))}</pre>`:
-  (doc.tables.length?doc.tables.map(x=>`<p class="stats">table ${esc(x.id)} · page ${x.page??'?'}</p><pre>${esc(x.markdown)}</pre>`).join(''):'<p>No tables found.</p>')}
-</script></body></html>
+  $('go').disabled=true;$('status').className='';$('status').innerHTML='<span class="spin"></span>Reading '+esc(file.name)+'…';
+  const t0=performance.now();
+  try{const r=await fetch('/v1/parse',{method:'POST',body:form()});const j=await r.json();
+    if(!r.ok){$('status').className='err';$('status').textContent=j.message||JSON.stringify(j);return}
+    doc=j;chunks=null;$('status').textContent='Done in '+((performance.now()-t0)/1000).toFixed(2)+' s, including upload.';show()}
+  catch(e){$('status').className='err';$('status').textContent='Could not reach the server: '+e}
+  finally{$('go').disabled=false}};
+
+function show(){const p=doc.processing;$('empty').style.display='none';$('out').style.display='block';
+  const ms=p.elapsed_ms,time=ms>=1000?(ms/1000).toFixed(1)+' s':ms+' ms';
+  $('stats').innerHTML=[['Engine',p.backend,'eng'],['Time',time],['Pages',doc.meta.page_count??'–'],['Tables',doc.tables.length],['Blocks',doc.blocks.length]]
+    .map(([k,v,c])=>`<div class="stat ${c||''}"><small>${k}</small><b>${esc(v)}</b></div>`).join('');
+  const rs=(p.decision?.reasons||[]).filter(r=>!/opt-in/.test(r));
+  $('why').innerHTML=rs.map(r=>`<div class="${r.startsWith('→')?'pick':''}">${esc(r)}</div>`).join('')
+    +(p.fallback_from?`<div class="fb">Retried with a stronger engine: ${esc(p.fallback_from)} → ${esc(p.backend)}</div>`:'')
+    +(p.warnings||[]).map(w=>`<div class="w">${esc(w)}</div>`).join('');
+  render()}
+
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
+
+async function render(){const v=$('view');
+  if(tab==='preview')v.innerHTML=`<div class="doc">${md2html(doc.markdown)||'<p>No text found.</p>'}</div>`;
+  else if(tab==='md')v.innerHTML=`<pre>${esc(doc.markdown)}</pre>`;
+  else if(tab==='json')v.innerHTML=`<pre>${esc(JSON.stringify(doc,null,2))}</pre>`;
+  else if(tab==='tables')v.innerHTML=doc.tables.length?doc.tables.map((t,i)=>`<div class="tbl"><h4>Table ${i+1}${t.page?' · page '+t.page:''}</h4>${md2html(t.markdown)}</div>`).join(''):'<p class="hint">No tables found in this document.</p>';
+  else if(tab==='chunks'){
+    if(!chunks){v.innerHTML='<p class="hint"><span class="spin"></span>Chunking…</p>';
+      try{const r=await fetch('/v1/chunk',{method:'POST',body:form({backend:doc.processing.backend})});chunks=await r.json();
+        if(!r.ok)throw new Error(chunks.message||'chunking failed')}catch(e){chunks=null;v.innerHTML=`<p class="hint">${esc(e.message)}</p>`;return}
+      if(tab!=='chunks')return}
+    v.innerHTML=`<p class="hint" style="margin-bottom:10px">${chunks.length} chunks, ready for a vector database.</p>`+chunks.map(c=>`<div class="chunk"><div class="m"><span class="k">${esc(c.kind)}</span>${(c.heading_path||[]).length?`<span>${esc(c.heading_path.join(' › '))}</span>`:''}<span>page ${esc((c.pages||[]).join(', ')||'–')}</span><span>${c.n_chars} chars</span></div><p>${esc(c.text.length>600?c.text.slice(0,600)+'…':c.text)}</p></div>`).join('')}}
+
+function current(){if(tab==='json')return[JSON.stringify(doc,null,2),'json'];
+  if(tab==='chunks'&&chunks)return[chunks.map(c=>JSON.stringify(c)).join('\n'),'jsonl'];
+  if(tab==='tables')return[doc.tables.map(t=>t.markdown).join('\n\n'),'md'];return[doc.markdown,'md']}
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(current()[0]);$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy',1200)}catch{}};
+$('dl').onclick=()=>{const[t,ext]=current();const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download=(file?.name||'document').replace(/\.[^.]+$/,'')+'.'+ext;a.click()};
+
+// Small Markdown renderer for the preview: headings, lists, tables, code and paragraphs.
+function inline(s){return esc(s).replace(/\\([\\`*_{}\[\]()#+\-.!|])/g,'$1').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>')}
+function md2html(md){if(!md)return'';const L=md.split('\n'),o=[];let i=0;
+  while(i<L.length){const l=L[i];
+    if(/^```/.test(l)){const b=[];i++;while(i<L.length&&!/^```/.test(L[i]))b.push(L[i++]);i++;o.push(`<pre>${esc(b.join('\n'))}</pre>`);continue}
+    const h=l.match(/^(#{1,6})\s+(.*)/);if(h){const n=Math.min(h[1].length,3);o.push(`<h${n}>${inline(h[2])}</h${n}>`);i++;continue}
+    if(/^\s*\|/.test(l)){const rows=[];while(i<L.length&&/^\s*\|/.test(L[i]))rows.push(L[i++]);
+      const cells=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const body=rows.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r));const head=body.shift();
+      o.push('<table><thead><tr>'+cells(head).map(c=>`<th>${inline(c)}</th>`).join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+cells(r).map(c=>`<td>${inline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table>');continue}
+    if(/^\s*([-*]|\d+\.)\s+/.test(l)){const it=[];while(i<L.length&&/^\s*([-*]|\d+\.)\s+/.test(L[i]))it.push(L[i++].replace(/^\s*([-*]|\d+\.)\s+/,''));
+      o.push('<ul>'+it.map(x=>`<li>${inline(x)}</li>`).join('')+'</ul>');continue}
+    if(!l.trim()){i++;continue}
+    const p=[];while(i<L.length&&L[i].trim()&&!/^(#{1,6}\s|```|\s*\||\s*([-*]|\d+\.)\s)/.test(L[i]))p.push(L[i++]);
+    o.push(`<p>${inline(p.join(' '))}</p>`)}
+  return o.join('')}
+</script>
+</body></html>
