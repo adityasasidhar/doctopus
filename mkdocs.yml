@@ -17,10 +17,6 @@ theme:
   icon:
     repo: fontawesome/brands/github
   palette:
-    - media: "(prefers-color-scheme)"
-      toggle:
-        icon: material/brightness-auto
-        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -34,7 +30,7 @@ theme:
       accent: custom
       toggle:
         icon: material/weather-night
-        name: Switch to system preference
+        name: Switch to light mode
   font:
     text: Inter
     code: JetBrains Mono
@@ -66,10 +62,10 @@ extra:
 
 nav:
   - Home: index.md
-  - Getting started:
+  - Get started:
       - Installation: installation.md
       - Quick start: quickstart.md
-  - Usage:
+  - Guides:
       - Command line: usage/cli.md
       - Python: usage/python.md
       - REST API & demo UI: usage/rest-api.md
@@ -79,12 +75,13 @@ nav:
       - Routing & fallback: concepts/routing.md
       - Output schema: concepts/output.md
       - Chunking: concepts/chunking.md
-  - Deployment: deployment.md
-  - Benchmarks: benchmarks.md
   - Reference:
       - Python API: reference/python-api.md
       - Configuration: reference/configuration.md
-  - Contributing: contributing.md
+      - Benchmarks: benchmarks.md
+  - Project:
+      - Deployment: deployment.md
+      - Contributing: contributing.md
 
 plugins:
   - search

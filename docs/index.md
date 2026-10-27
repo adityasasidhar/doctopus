@@ -4,82 +4,132 @@ hide:
   - toc
 ---
 
+<div class="dx-home" markdown>
+
 <div class="dx-hero" markdown>
+<div class="dx-hero__copy" markdown>
 
-![Doctopus logo](assets/logo.png)
+<p class="dx-eyebrow">OPEN SOURCE DOCUMENT PROCESSING</p>
 
-# Doctopus
+# Many arms.<br> One API.
 
-<p class="dx-tagline">Many arms. One API.</p>
-<p class="dx-sub">Turn documents into structured, LLM-ready data with a single self-hosted gateway.</p>
+<p class="dx-lead">Your documents, ready for what’s next.</p>
+<p class="dx-description">Turn PDFs, Office files, and scans into structured, LLM-ready data. One self-hosted gateway. The right engine for the job.</p>
 
-[Get started](installation.md){ .md-button .md-button--primary }
-[View on GitHub](https://github.com/adityasasidhar/doctopus){ .md-button }
+<div class="dx-actions" markdown>
+
+[Get started :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary aria-label="Get started" }
+[Explore the docs](quickstart.md){ .md-button }
 
 </div>
 
-Doctopus parses PDFs, Office documents, and scans into Markdown, text, tables, and structured blocks. Use it from Python, the command line, a REST API, or an MCP client. Behind each interface is the same gateway: it selects an available processing engine, explains its decision, and can try an alternative when extraction fails or looks suspicious.
+<p class="dx-meta">Python 3.12 <span aria-hidden="true">/</span> Self-hosted <span aria-hidden="true">/</span> MIT licensed</p>
 
-```bash
-pip install doctopus-ai
-doctopus parse paper.pdf
+</div>
+<div class="dx-example" markdown>
+
+<div class="dx-example__header"><span>LESS GLUE. MORE BUILDING.</span><span>Python</span></div>
+
+```python
+import doctopus
+
+# A document in. Structured data out.
+doc = doctopus.parse("paper.pdf")
+
+print(doc.markdown)
+print(doc.tables)
+print(doc.processing.backend)
+
+# Ready for your retrieval pipeline.
+chunks = doctopus.chunk("paper.pdf")
 ```
 
-## Features
+<div class="dx-example__footer"><span class="dx-status" aria-hidden="true"></span>One consistent Document schema.</div>
 
-<div class="grid cards" markdown>
+</div>
+</div>
 
--   :material-feather:{ .lg .middle } **Start light**
+<div class="dx-overview" markdown>
+<div><strong>8</strong><span>processing engines</span></div>
+<div><strong>4</strong><span>ways to connect</span></div>
+<div><strong>1</strong><span>consistent schema</span></div>
 
-    ---
-
-    Xberg is the default engine, with OCR, table extraction, and document structure, at 100–200 MB of RAM.
-
-    [:octicons-arrow-right-24: Engines](concepts/engines.md)
-
--   :material-shape-outline:{ .lg .middle } **Eight engines, one schema**
-
-    ---
-
-    Docling, PaddleOCR, Marker, MinerU, MarkItDown, PyMuPDF4LLM and Ollama vision models all return the same versioned `Document`.
-
-    [:octicons-arrow-right-24: Output schema](concepts/output.md)
-
--   :material-routes:{ .lg .middle } **Explainable routing**
-
-    ---
-
-    The router picks an engine by format, mode and free memory, records why, and tries at most one alternative on a failed or suspicious result.
-
-    [:octicons-arrow-right-24: Routing](concepts/routing.md)
-
--   :material-puzzle:{ .lg .middle } **Every interface**
-
-    ---
-
-    Python, CLI, REST API with a drag-and-drop demo, and an MCP server for agents, all backed by the same gateway.
-
-    [:octicons-arrow-right-24: Usage](usage/cli.md)
-
--   :material-scissors-cutting:{ .lg .middle } **RAG-ready chunks**
-
-    ---
-
-    Layout-aware chunks that respect headings and never split tables, exported as JSONL.
-
-    [:octicons-arrow-right-24: Chunking](concepts/chunking.md)
-
--   :material-server:{ .lg .middle } **Run it yourself**
-
-    ---
-
-    Use it locally or in Docker, without a per-page API service.
-
-    [:octicons-arrow-right-24: Deployment](deployment.md)
+[Meet the engines ↗](concepts/engines.md)
 
 </div>
 
-## At a glance
+<div class="dx-section-heading" markdown>
+
+<p class="dx-eyebrow">A SMALLER STACK</p>
+
+## Everything you need.<br> Less to wire together.
+
+</div>
+
+<div class="dx-features" markdown>
+<div class="dx-feature" markdown>
+
+<span class="dx-feature__number">01 / ROUTING</span>
+
+### The right engine, explained.
+
+Start with lightweight Xberg. Add engines as you need them. The router selects by format, mode, and available memory, and records why.
+
+[How routing works :octicons-arrow-right-24:](concepts/routing.md){ aria-label="How routing works" }
+
+</div>
+<div class="dx-feature" markdown>
+
+<span class="dx-feature__number">02 / STRUCTURE</span>
+
+### Different inputs. Same shape.
+
+Get Markdown, text, tables, and structured blocks through one versioned schema. Export heading-aware chunks that keep tables intact.
+
+[Explore the output :octicons-arrow-right-24:](concepts/output.md){ aria-label="Explore the output" }
+
+</div>
+<div class="dx-feature" markdown>
+
+<span class="dx-feature__number">03 / CONTROL</span>
+
+### Your infrastructure. Your call.
+
+Run locally or deploy with Docker. Choose your engines and connect through Python, the command line, REST, or an MCP client.
+
+[Deploy Doctopus :octicons-arrow-right-24:](deployment.md){ aria-label="Deploy Doctopus" }
+
+</div>
+</div>
+
+<div class="dx-workflow" markdown>
+<div class="dx-workflow__intro" markdown>
+
+<p class="dx-eyebrow">FITS YOUR WORKFLOW</p>
+
+## Start small.<br> Build from here.
+
+Install the package, parse a document, and put the output to work. Use the same gateway from your terminal, application, or agent.
+
+[Read the quick start :octicons-arrow-right-24:](quickstart.md){ aria-label="Read the quick start" }
+
+<p class="dx-note">OCR and layout engines may download model weights on first use.</p>
+
+</div>
+<div class="dx-workflow__code" markdown>
+
+=== "CLI"
+
+    ```bash
+    pip install doctopus-ai
+    doctopus parse paper.pdf
+
+    # Return structured output
+    doctopus parse paper.pdf --format json
+
+    # Build a retrieval corpus
+    doctopus chunk ./corpus --output corpus.jsonl
+    ```
 
 === "Python"
 
@@ -88,25 +138,22 @@ doctopus parse paper.pdf
 
     doc = doctopus.parse("paper.pdf")
     print(doc.markdown)
-    print(doc.processing.backend, doc.processing.decision.reasons)
+    print(doc.processing.decision.reasons)
 
-    chunks = doctopus.chunk("paper.pdf", max_chars=1500)
-    ```
-
-=== "CLI"
-
-    ```bash
-    doctopus parse paper.pdf                        # Markdown to stdout
-    doctopus parse scan.pdf --backend docling       # pick an engine
-    doctopus plan paper.pdf --mode accurate         # explain routing only
-    doctopus chunk ./corpus --output corpus.jsonl   # chunks for RAG
+    chunks = doctopus.chunk(
+        "paper.pdf", max_chars=1500
+    )
     ```
 
 === "REST"
 
     ```bash
+    # Start the API and drag-and-drop demo
     doctopus serve --port 8000
-    curl -F file=@paper.pdf http://localhost:8000/v1/parse
+
+    # Parse a document
+    curl -F file=@paper.pdf \
+      http://localhost:8000/v1/parse
     ```
 
 === "MCP"
@@ -122,18 +169,37 @@ doctopus parse paper.pdf
     }
     ```
 
-## How it works
+</div>
+</div>
 
-```text
-CLI · REST · MCP · Python
-          │
-          ▼
-   Inspect → Route → Extract → Document
-               │        │
-               │        └─ At most one alternative on failure or a suspicious result
-               ├─ Light: xberg (preferred), pymupdf4llm, markitdown
-               ├─ Heavy: docling, marker, mineru, ollama
-               └─ Explicit only: paddleocr
-```
+<div class="dx-pipeline" markdown>
 
-Doctopus is [MIT licensed](https://github.com/adityasasidhar/doctopus/blob/main/LICENSE). Backend packages and model weights have their own licenses.
+<p class="dx-eyebrow">UNDER THE HOOD</p>
+
+## A clear path from file to data.
+
+<ol class="dx-steps">
+<li><span>01</span><strong>Inspect</strong><p>Read the format, size, and available resources.</p></li>
+<li><span>02</span><strong>Route</strong><p>Choose an available engine for the job.</p></li>
+<li><span>03</span><strong>Extract</strong><p>Parse content, with at most one fallback when needed.</p></li>
+<li><span>04</span><strong>Build</strong><p>Return a document with content and processing details.</p></li>
+</ol>
+
+</div>
+
+<div class="dx-closing" markdown>
+<div markdown>
+
+### Make your first document useful.
+
+A couple of commands is a good place to start.
+
+</div>
+
+[Get started :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary aria-label="Get started" }
+
+</div>
+
+<p class="dx-license" markdown>Doctopus is [MIT licensed](https://github.com/adityasasidhar/doctopus/blob/main/LICENSE). Backend packages and model weights have their own licenses.</p>
+
+</div>
