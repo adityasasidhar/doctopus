@@ -9,9 +9,11 @@ copyright: Copyright &copy; 2026 Aditya Sasidhar · MIT License
 # Internal design specs and plans live next to the site sources but are not published.
 exclude_docs: |
   superpowers/
+  overrides/
 
 theme:
   name: material
+  custom_dir: docs/overrides
   logo: assets/logo.png
   favicon: assets/favicon.png
   icon:
@@ -44,6 +46,7 @@ theme:
     - navigation.instant
     - navigation.sections
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
     - navigation.tracking
     - search.highlight
@@ -52,7 +55,7 @@ theme:
 
 extra_css:
   # Bump the revision when styles change so browsers fetch the updated design.
-  - stylesheets/extra.css?v=3d80b3a8
+  - stylesheets/extra.css?v=a5ef739f
 
 extra:
   social:
